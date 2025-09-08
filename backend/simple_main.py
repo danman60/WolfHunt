@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from datetime import datetime
 import random
+import os
 
 app = FastAPI(title="dYdX Trading Bot API", version="1.0.0")
 
@@ -167,10 +168,11 @@ if __name__ == "__main__":
     print("API available at: http://localhost:8000")
     print("API docs at: http://localhost:8000/docs")
     
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(
         "simple_main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=False,  # Disable reload in production
         log_level="info"
     )
