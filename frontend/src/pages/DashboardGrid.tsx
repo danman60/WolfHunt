@@ -156,6 +156,8 @@ export function DashboardGrid() {
         isResizable={true}
         margin={[4, 4]}
         containerPadding={[0, 0]}
+        compactType="vertical"
+        preventCollision={false}
       >
         {/* Bot Status Bar - Primary Focus */}
         <div key="bot-status">

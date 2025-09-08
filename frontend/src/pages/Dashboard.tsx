@@ -133,6 +133,29 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 export function Dashboard() {
   const [selectedAsset, setSelectedAsset] = useState('BTC-USD');
   const [botStatus, setBotStatus] = useState(botMetrics);
+  const [draggedPanel, setDraggedPanel] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, panelId: string) => {
+    setDraggedPanel(panelId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPanel(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetPanelId: string) => {
+    e.preventDefault();
+    if (draggedPanel && draggedPanel !== targetPanelId) {
+      console.log(`Moving panel ${draggedPanel} to position of ${targetPanelId}`);
+      // Panel reordering logic would go here
+    }
+  };
 
   // Mock real-time data updates for bot performance
   useEffect(() => {
@@ -150,11 +173,18 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="p-2 space-y-2">
+    <div className="p-2 space-y-1">
       {/* Bot Status Bar - Primary Focus */}
-      <Card className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 relative group hover:border-blue-500 transition-colors">
+      <Card 
+        className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 relative group hover:border-blue-500 transition-colors"
+        draggable={true}
+        onDragStart={(e) => handleDragStart(e, 'bot-status')}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, 'bot-status')}
+      >
         <CardContent className="p-4">
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-50 transition-opacity cursor-move text-blue-300" title="Drag to reposition">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-70 transition-opacity cursor-move text-blue-300" title="Drag to reposition" draggable={false}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="3" cy="3" r="1"/>
               <circle cx="8" cy="3" r="1"/>
@@ -222,7 +252,14 @@ export function Dashboard() {
         {/* Asset Selector & Mini Charts */}
         <div className="xl:col-span-1 space-y-2">
           {/* Asset Selection */}
-          <Card>
+          <Card 
+            className="relative group hover:border-green-400 transition-colors"
+            draggable={true}
+            onDragStart={(e) => handleDragStart(e, 'asset-selector')}
+            onDragEnd={handleDragEnd}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'asset-selector')}
+          >
             <CardHeader className="pb-2">
               <h3 className="text-lg font-semibold text-white">dYdX Perpetuals</h3>
             </CardHeader>
@@ -388,9 +425,29 @@ export function Dashboard() {
 
       {/* Compact Performance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-        <Card>
-          <CardHeader>
+        <Card 
+          className="relative group hover:border-blue-400 transition-colors"
+          draggable={true}
+          onDragStart={(e) => handleDragStart(e, 'volume-chart')}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, 'volume-chart')}
+        >
+          <CardHeader className="relative">
             <h3 className="text-lg font-semibold text-white">Daily Trading Volume</h3>
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-70 transition-opacity cursor-move text-gray-400" title="Drag to reposition" draggable={false}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="3" cy="3" r="1"/>
+                <circle cx="8" cy="3" r="1"/>
+                <circle cx="13" cy="3" r="1"/>
+                <circle cx="3" cy="8" r="1"/>
+                <circle cx="8" cy="8" r="1"/>
+                <circle cx="13" cy="8" r="1"/>
+                <circle cx="3" cy="13" r="1"/>
+                <circle cx="8" cy="13" r="1"/>
+                <circle cx="13" cy="13" r="1"/>
+              </svg>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-40">
