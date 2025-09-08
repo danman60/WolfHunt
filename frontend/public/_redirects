@@ -1,0 +1,22 @@
+# Netlify redirects file for React SPA
+# This handles client-side routing by redirecting all routes to index.html
+
+# SPA fallback - redirect all requests to index.html for client-side routing
+/*    /index.html   200
+
+# API routes (if you want to proxy to your backend)
+/api/*  https://your-backend-url.com/api/:splat  200
+
+# Health check endpoint
+/health  https://your-backend-url.com/health  200
+
+# WebSocket connections (if needed)
+/ws/*  wss://your-backend-url.com/ws/:splat  200
+
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:;
