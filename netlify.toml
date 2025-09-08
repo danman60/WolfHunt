@@ -2,13 +2,16 @@
 
 [build]
   # Build command for the frontend
-  command = "cd frontend && npm run build"
+  command = "npm run build"
+  
+  # Base directory where package.json and vite.config.ts are located
+  base = "frontend"
   
   # Directory to publish (output of React build)
-  publish = "frontend/dist"
+  publish = "dist"
   
   # Functions directory (if using Netlify Functions)
-  functions = "netlify/functions"
+  functions = "../netlify/functions"
 
 # Environment variables for build
 [build.environment]
