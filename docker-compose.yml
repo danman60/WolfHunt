@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  trading-bot:
+    build: .
+    container_name: dydx-trading-bot
+    environment:
+      - DATABASE_URL=postgresql://trading_user:secure_password@db:5432/trading_bot
+      - REDIS_URL=redis://redis:6379/0
+      - DYDX_API_KEY=${DYDX_API_KEY}
+      - DYDX_SECRET_KEY=${DYDX_SECRET_KEY}
+      - DYDX_PASSPHRASE=${DYDX_PASSPHRASE}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - TRADING_MODE=${TRADING_MODE:-paper}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+  db:
+    image: postgres:15
+    container_name: trading-bot-db
+    environment:
+      POSTGRES_DB: trading_bot
+      POSTGRES_USER: trading_user
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trading_user -d trading_bot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+  redis:
+    image: redis:7-alpine
+    container_name: trading-bot-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: trading-bot-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    
+  grafana:
+    image: grafana/grafana:latest
+    container_name: trading-bot-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - ./infrastructure/monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/trading-bot.json
+      - ./infrastructure/monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
