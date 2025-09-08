@@ -18,12 +18,14 @@ from fastapi.staticfiles import StaticFiles
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import structlog
 
-from src.config import get_config
-from src.monitoring.health_monitor import SystemHealthMonitor
-from src.monitoring.metrics import TradingMetrics
+from src.config.settings import get_settings
+from src.database.base import init_db, check_db_health
+from src.monitoring.health_monitor import get_health_monitor
+from src.monitoring.metrics import get_metrics_collector
 from src.api.trading_routes import router as trading_router
 from src.api.auth_routes import router as auth_router
-from src.api.websocket_routes import router as websocket_router
+from src.api.websocket_routes import router as websocket_router, periodic_updates_task
+from src.api.health_routes import router as health_router
 
 
 # Configure structured logging
@@ -51,37 +53,30 @@ class TradingBotApplication:
     """Main trading bot application class with lifecycle management"""
     
     def __init__(self):
-        self.config = get_config()
-        self.health_monitor = SystemHealthMonitor()
-        self.metrics = TradingMetrics()
+        self.config = get_settings()
+        self.health_monitor = get_health_monitor()
+        self.metrics = get_metrics_collector()
         self.trading_engine = None
-        self.websocket_manager = None
+        self.websocket_task = None
         self.is_shutting_down = False
         
     async def startup(self) -> None:
         """Initialize all application components"""
         logger.info("Starting dYdX Trading Bot application", 
-                   mode=self.config.trading_mode,
-                   environment=self.config.dydx_environment)
+                   testnet=self.config.testnet,
+                   debug=self.config.debug)
         
         try:
-            # Initialize database connections
+            # Initialize database
             await self._initialize_database()
             
-            # Initialize Redis cache
-            await self._initialize_redis()
-            
-            # Initialize dYdX API clients
-            await self._initialize_dydx_clients()
-            
             # Start health monitoring
-            await self.health_monitor.start()
+            await self.health_monitor.start_monitoring()
             
-            # Start Prometheus metrics server
-            if self.config.enable_monitoring:
-                await self._start_metrics_server()
+            # Start WebSocket periodic updates
+            self.websocket_task = asyncio.create_task(periodic_updates_task())
             
-            # Initialize trading engine
+            # Initialize trading engine (placeholder)
             await self._initialize_trading_engine()
             
             logger.info("Trading bot application started successfully")
@@ -99,22 +94,20 @@ class TradingBotApplication:
         logger.info("Shutting down trading bot application")
         
         try:
+            # Stop WebSocket periodic updates
+            if self.websocket_task:
+                self.websocket_task.cancel()
+                try:
+                    await self.websocket_task
+                except asyncio.CancelledError:
+                    pass
+            
             # Stop trading engine first
             if self.trading_engine:
                 await self.trading_engine.stop()
             
-            # Close WebSocket connections
-            if self.websocket_manager:
-                await self.websocket_manager.disconnect()
-            
             # Stop health monitoring
-            await self.health_monitor.stop()
-            
-            # Close database connections
-            await self._close_database_connections()
-            
-            # Close Redis connections
-            await self._close_redis_connections()
+            await self.health_monitor.stop_monitoring()
             
             logger.info("Trading bot application shutdown complete")
             
@@ -123,37 +116,26 @@ class TradingBotApplication:
     
     async def _initialize_database(self) -> None:
         """Initialize database connections and run migrations"""
-        # TODO: Implement database initialization
-        logger.info("Database initialization - TODO")
-    
-    async def _initialize_redis(self) -> None:
-        """Initialize Redis cache connections"""
-        # TODO: Implement Redis initialization
-        logger.info("Redis initialization - TODO")
-    
-    async def _initialize_dydx_clients(self) -> None:
-        """Initialize dYdX API clients"""
-        # TODO: Implement dYdX client initialization
-        logger.info("dYdX client initialization - TODO")
-    
-    async def _start_metrics_server(self) -> None:
-        """Start Prometheus metrics HTTP server"""
-        # TODO: Implement metrics server
-        logger.info("Metrics server initialization - TODO")
+        logger.info("Initializing database...")
+        try:
+            await init_db()
+            
+            # Check database health
+            if await check_db_health():
+                logger.info("Database connection established successfully")
+            else:
+                logger.error("Database health check failed")
+                raise RuntimeError("Database initialization failed")
+                
+        except Exception as e:
+            logger.error("Database initialization error", error=str(e))
+            raise
     
     async def _initialize_trading_engine(self) -> None:
         """Initialize and start the trading engine"""
-        # TODO: Implement trading engine initialization
-        logger.info("Trading engine initialization - TODO")
-    
-    async def _close_database_connections(self) -> None:
-        """Close all database connections"""
-        # TODO: Implement database connection cleanup
-        pass
-    
-    async def _close_redis_connections(self) -> None:
-        """Close Redis connections"""
-        # TODO: Implement Redis connection cleanup  
+        logger.info("Trading engine initialization - placeholder")
+        # TODO: Implement actual trading engine initialization
+        # This would start the strategy execution, market data processing, etc.
         pass
 
 
@@ -174,14 +156,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 def create_application() -> FastAPI:
     """Create and configure the FastAPI application"""
     
-    config = get_config()
+    config = get_settings()
     
     app = FastAPI(
-        title="dYdX Trading Bot API",
+        title="WolfHunt - dYdX Trading Bot API",
         description="Enterprise-grade automated trading system for dYdX v4",
         version="1.0.0",
-        docs_url="/docs" if config.trading_mode == "paper" else None,  # Disable docs in live mode
-        redoc_url="/redoc" if config.trading_mode == "paper" else None,
+        docs_url="/docs" if config.debug else None,  # Disable docs in production
+        redoc_url="/redoc" if config.debug else None,
         lifespan=lifespan
     )
     
@@ -189,7 +171,7 @@ def create_application() -> FastAPI:
     app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if config.trading_mode == "paper" else ["https://your-domain.com"],
+        allow_origins=["*"] if config.debug else ["https://your-domain.com"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -229,14 +211,21 @@ def create_application() -> FastAPI:
         if app_instance.is_shutting_down:
             return Response(status_code=503, content="Shutting down")
         
-        health_status = await app_instance.health_monitor.get_health_status()
-        status_code = 200 if health_status["status"] == "healthy" else 503
-        
-        return Response(
-            status_code=status_code,
-            content=health_status,
-            media_type="application/json"
-        )
+        try:
+            health_status = app_instance.health_monitor.get_current_health()
+            if health_status is None:
+                health_status = await app_instance.health_monitor.perform_health_checks()
+            
+            status_code = 200 if health_status.status == "healthy" else 503
+            
+            return {
+                "status": health_status.status,
+                "timestamp": health_status.timestamp.isoformat(),
+                "uptime_seconds": health_status.uptime_seconds
+            }
+        except Exception as e:
+            logger.error("Health check error", error=str(e))
+            return Response(status_code=503, content="Health check failed")
     
     # Metrics endpoint for Prometheus
     @app.get("/metrics")
@@ -248,9 +237,10 @@ def create_application() -> FastAPI:
         )
     
     # Include API routers
-    app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
-    app.include_router(trading_router, prefix="/api/trading", tags=["Trading"])
-    app.include_router(websocket_router, prefix="/api/ws", tags=["WebSocket"])
+    app.include_router(auth_router, tags=["Authentication"])
+    app.include_router(trading_router, tags=["Trading"])
+    app.include_router(health_router, tags=["Health"])
+    app.include_router(websocket_router, tags=["WebSocket"])
     
     # Serve frontend static files
     try:
@@ -275,11 +265,12 @@ def setup_signal_handlers() -> None:
 
 def main() -> None:
     """Main entry point"""
-    config = get_config()
+    config = get_settings()
     
     # Setup logging
+    log_level = "DEBUG" if config.debug else "INFO"
     logging.basicConfig(
-        level=getattr(logging, config.log_level.upper()),
+        level=getattr(logging, log_level),
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     
@@ -294,7 +285,7 @@ def main() -> None:
         app,
         host="0.0.0.0",
         port=8000,
-        log_level=config.log_level.lower(),
+        log_level=log_level.lower(),
         access_log=True,
         loop="asyncio"
     )

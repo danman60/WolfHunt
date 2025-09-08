@@ -1,0 +1,104 @@
+# Prometheus configuration for dYdX Trading Bot monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'wolfhunt-trading'
+    environment: 'production'
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Trading Bot Application
+  - job_name: 'trading-bot'
+    static_configs:
+      - targets: ['trading-bot:8000']
+    metrics_path: '/api/health/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    scheme: http
+    params:
+      format: ['prometheus']
+
+  # FastAPI Application Metrics
+  - job_name: 'fastapi-app'
+    static_configs:
+      - targets: ['trading-bot:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # PostgreSQL Database
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['db:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # cAdvisor (Container Metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+
+  # Blackbox Exporter (External Health Checks)
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://api.dydx.exchange/v3/candles/BTC-USD
+        - https://api.dydx.exchange/v3/markets
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # WebSocket Health Check
+  - job_name: 'blackbox-websocket'
+    metrics_path: /probe
+    params:
+      module: [websocket]
+    static_configs:
+      - targets:
+        - wss://api.dydx.exchange/v3/ws
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s

@@ -96,3 +96,45 @@ grafana_data/
 *private*
 credentials.json
 auth.json
+
+# QA and Testing outputs
+qa/reports/
+qa/screenshots/
+test-results/
+playwright-report/
+load_test_report_*.html
+security_test_report_*.json
+
+# Trading specific
+trading_data/
+historical_data/
+backtest_results/
+dydx_credentials.json
+
+# Additional build outputs
+*.tar.gz
+*.zip
+*.rar
+
+# Performance profiling
+*.prof
+*.pstats
+*.mprof
+
+# Certificate files
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# Local development overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Environment specific configs
+.env.development
+.env.staging
+
+# Memory dumps and core files
+core
+*.dump

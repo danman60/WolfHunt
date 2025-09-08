@@ -1,0 +1,54 @@
+# Grafana datasources configuration for dYdX Trading Bot
+
+apiVersion: 1
+
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+
+datasources:
+  # Prometheus datasource for metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://prometheus:9090
+    isDefault: true
+    version: 1
+    editable: true
+    jsonData:
+      httpMethod: POST
+      queryTimeout: 60s
+      timeInterval: 15s
+      
+  # PostgreSQL datasource for direct database queries
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    orgId: 1
+    url: db:5432
+    database: wolfhunt
+    user: postgres
+    secureJsonData:
+      password: postgres
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 10
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1300
+      timescaledb: false
+      
+  # InfluxDB datasource (if using InfluxDB for time series)
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    orgId: 1
+    url: http://influxdb:8086
+    database: trading_metrics
+    user: admin
+    secureJsonData:
+      password: admin123
+    jsonData:
+      httpMode: GET
+      keepCookies: []
