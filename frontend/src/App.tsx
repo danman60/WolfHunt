@@ -3,6 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Sidebar } from './components/layout/Sidebar'
 import { Header } from './components/layout/Header'
 import { Dashboard } from './pages/Dashboard'
+import { Trading } from './pages/Trading'
+import { History } from './pages/History'
+import { Strategy } from './pages/Strategy'
+import { RiskManagement } from './pages/RiskManagement'
+import { Alerts } from './pages/Alerts'
 import { cn } from './utils/cn'
 import './App.css'
 
@@ -38,11 +43,11 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/trading" element={<div className="p-6"><h1 className="text-2xl font-bold text-white">Trading</h1></div>} />
-                <Route path="/history" element={<div className="p-6"><h1 className="text-2xl font-bold text-white">History</h1></div>} />
-                <Route path="/strategy" element={<div className="p-6"><h1 className="text-2xl font-bold text-white">Strategy</h1></div>} />
-                <Route path="/risk" element={<div className="p-6"><h1 className="text-2xl font-bold text-white">Risk Management</h1></div>} />
-                <Route path="/alerts" element={<div className="p-6"><h1 className="text-2xl font-bold text-white">Alerts</h1></div>} />
+                <Route path="/trading" element={<Trading />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/strategy" element={<Strategy />} />
+                <Route path="/risk" element={<RiskManagement />} />
+                <Route path="/alerts" element={<Alerts />} />
               </Routes>
             </main>
           </div>
