@@ -20,9 +20,10 @@ export interface Position {
 interface PositionsTableProps {
   positions: Position[];
   onClosePosition?: (positionId: number) => void;
+  compact?: boolean;
 }
 
-export function PositionsTable({ positions, onClosePosition }: PositionsTableProps) {
+export function PositionsTable({ positions, onClosePosition, compact: _compact }: PositionsTableProps) {
   const totalPnl = positions.reduce((sum, pos) => sum + pos.unrealizedPnl, 0);
   
   return (

@@ -1,20 +1,66 @@
 import { useState, useEffect } from 'react';
 import { PortfolioStats } from '../components/dashboard/PortfolioStats';
 import { TradingChart } from '../components/dashboard/TradingChart';
-import { PositionsTable, Position } from '../components/dashboard/PositionsTable';
-import { TradesTable, Trade } from '../components/dashboard/TradesTable';
+import { PositionsTable } from '../components/dashboard/PositionsTable';
+import type { Position } from '../components/dashboard/PositionsTable';
+// import { TradesTable } from '../components/dashboard/TradesTable';
+import type { Trade } from '../components/dashboard/TradesTable';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { apiService, getMockDashboardData, type DashboardData } from '../services/api';
 
-// Mock data - focused on dYdX perpetuals trading bot performance
-const mockPortfolioStats = [
-  { label: 'Total Equity', value: '$99,843', change: 2.34, changeType: 'percentage' as const, color: 'blue' as const },
-  { label: 'Daily P&L', value: '+$2,156', change: 2.34, changeType: 'percentage' as const, color: 'green' as const },
-  { label: 'Unrealized P&L', value: '+$1,245', color: 'green' as const },
-  { label: 'Used Margin', value: '$8,520', color: 'blue' as const },
-  { label: 'Available Margin', value: '$91,323', color: 'gray' as const },
-  { label: 'Win Rate', value: '68.5%', change: 3.2, changeType: 'percentage' as const, color: 'green' as const }
-];
+// Generate portfolio stats from dashboard data
+const getPortfolioStats = (data: DashboardData | null) => {
+  if (!data) {
+    return [
+      { label: 'Total Equity', value: '...', color: 'blue' as const },
+      { label: 'Daily P&L', value: '...', color: 'green' as const },
+      { label: 'Unrealized P&L', value: '...', color: 'green' as const },
+      { label: 'Used Margin', value: '...', color: 'blue' as const },
+      { label: 'Available Margin', value: '...', color: 'gray' as const },
+      { label: 'Win Rate', value: '...', color: 'green' as const }
+    ];
+  }
+
+  return [
+    { 
+      label: 'Total Equity', 
+      value: `$${data.total_equity.toLocaleString()}`, 
+      change: data.daily_pnl_percent, 
+      changeType: 'percentage' as const, 
+      color: 'blue' as const 
+    },
+    { 
+      label: 'Daily P&L', 
+      value: `${data.daily_pnl >= 0 ? '+' : ''}$${data.daily_pnl.toLocaleString()}`, 
+      change: data.daily_pnl_percent, 
+      changeType: 'percentage' as const, 
+      color: data.daily_pnl >= 0 ? 'green' as const : 'red' as const 
+    },
+    { 
+      label: 'Unrealized P&L', 
+      value: `${data.total_unrealized_pnl >= 0 ? '+' : ''}$${data.total_unrealized_pnl.toLocaleString()}`, 
+      color: data.total_unrealized_pnl >= 0 ? 'green' as const : 'red' as const 
+    },
+    { 
+      label: 'Used Margin', 
+      value: `$${data.used_margin.toLocaleString()}`, 
+      color: 'blue' as const 
+    },
+    { 
+      label: 'Available Margin', 
+      value: `$${data.available_margin.toLocaleString()}`, 
+      color: 'gray' as const 
+    },
+    { 
+      label: 'Win Rate', 
+      value: `${data.win_rate.toFixed(1)}%`, 
+      change: 0, // Could track change over time
+      changeType: 'percentage' as const, 
+      color: 'green' as const 
+    }
+  ];
+};
 
 // dYdX perpetuals price data
 const mockChartData = {
@@ -128,12 +174,17 @@ const botMetrics = {
   successRate: 94.2
 };
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+// const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export function Dashboard() {
   const [selectedAsset, setSelectedAsset] = useState('BTC-USD');
-  const [botStatus, setBotStatus] = useState(botMetrics);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  // const [loading, setLoading] = useState(true);
+  const [apiConnected, setApiConnected] = useState(false);
   const [draggedPanel, setDraggedPanel] = useState<string | null>(null);
+  const [botStatus, setBotStatus] = useState(botMetrics);
 
   const handleDragStart = (e: React.DragEvent, panelId: string) => {
     setDraggedPanel(panelId);
@@ -157,32 +208,78 @@ export function Dashboard() {
     }
   };
 
-  // Mock real-time data updates for bot performance
+  // Fetch data from API or use mock data
+  const fetchDashboardData = async () => {
+    try {
+      // setLoading(true);
+      
+      // Check if API is connected
+      const connected = await apiService.checkConnection();
+      setApiConnected(connected);
+      
+      if (connected) {
+        // Fetch real data from API
+        const dashData = await apiService.getDashboardData();
+        
+        setDashboardData(dashData);
+        // For now, keep using mock data for positions and trades until we align the types
+        setPositions(mockPositions);
+        setTrades(mockTrades);
+      } else {
+        // Use mock data when API is not available
+        setDashboardData(getMockDashboardData());
+        setPositions(mockPositions);
+        setTrades(mockTrades);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      // Fallback to mock data on error
+      setDashboardData(getMockDashboardData());
+      setPositions(mockPositions);
+      setTrades(mockTrades);
+      setApiConnected(false);
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  // Real-time data updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setBotStatus(prev => ({
-        ...prev,
-        signalsToday: prev.signalsToday + Math.floor(Math.random() * 2),
-        executedToday: prev.executedToday + Math.floor(Math.random() * 1.5),
-        avgExecutionTime: Math.floor(120 + Math.random() * 60) + 'ms',
-        successRate: Math.max(90, Math.min(98, prev.successRate + (Math.random() - 0.5) * 2))
-      }));
+      if (apiConnected) {
+        fetchDashboardData();
+      } else {
+        // Update mock bot status for demo
+        setBotStatus(prev => ({
+          ...prev,
+          signalsToday: prev.signalsToday + Math.floor(Math.random() * 2),
+          executedToday: prev.executedToday + Math.floor(Math.random() * 1.5),
+          avgExecutionTime: Math.floor(120 + Math.random() * 60) + 'ms',
+          successRate: Math.max(90, Math.min(98, prev.successRate + (Math.random() - 0.5) * 2))
+        }));
+      }
     }, 10000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [apiConnected]);
 
   return (
     <div className="p-2 space-y-1">
       {/* Bot Status Bar - Primary Focus */}
-      <Card 
-        className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 relative group hover:border-blue-500 transition-colors"
+      <div 
+        className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 relative group hover:border-blue-500 transition-colors rounded-lg border"
         draggable={true}
         onDragStart={(e) => handleDragStart(e, 'bot-status')}
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, 'bot-status')}
       >
+        <Card className="bg-transparent border-0">
         <CardContent className="p-4">
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-70 transition-opacity cursor-move text-blue-300" title="Drag to reposition" draggable={false}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -205,8 +302,11 @@ export function Dashboard() {
                 }`}></div>
                 <span className="text-white font-semibold text-lg">WolfHunt Bot</span>
                 <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  botStatus.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>{botStatus.status}</span>
+                  (dashboardData?.trading_enabled || botStatus.status === 'ACTIVE') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>{dashboardData?.trading_enabled ? 'ACTIVE' : botStatus.status}</span>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  apiConnected ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>{apiConnected ? 'API' : 'DEMO'}</span>
               </div>
               <div className="text-sm text-blue-200">
                 Uptime: <span className="text-white font-medium">{botStatus.uptime}</span>
@@ -217,24 +317,25 @@ export function Dashboard() {
             </div>
             <div className="flex items-center space-x-6 text-sm">
               <div className="text-center">
-                <div className="text-white font-bold text-lg">{botStatus.signalsToday}</div>
-                <div className="text-blue-200">Signals Today</div>
+                <div className="text-white font-bold text-lg">{dashboardData?.total_trades || botStatus.signalsToday}</div>
+                <div className="text-blue-200">{apiConnected ? 'Total Trades' : 'Signals Today'}</div>
               </div>
               <div className="text-center">
-                <div className="text-white font-bold text-lg">{botStatus.executedToday}</div>
-                <div className="text-blue-200">Executed</div>
+                <div className="text-white font-bold text-lg">{dashboardData?.open_positions || botStatus.executedToday}</div>
+                <div className="text-blue-200">{apiConnected ? 'Open Positions' : 'Executed'}</div>
               </div>
               <div className="text-center">
-                <div className="text-white font-bold text-lg">{botStatus.successRate.toFixed(1)}%</div>
-                <div className="text-blue-200">Success Rate</div>
+                <div className="text-white font-bold text-lg">{dashboardData?.win_rate?.toFixed(1) || botStatus.successRate.toFixed(1)}%</div>
+                <div className="text-blue-200">{apiConnected ? 'Win Rate' : 'Success Rate'}</div>
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* Portfolio Performance Stats */}
-      <PortfolioStats stats={mockPortfolioStats} />
+      <PortfolioStats stats={getPortfolioStats(dashboardData)} />
 
       {/* Main Trading Interface - Optimized Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
@@ -242,7 +343,7 @@ export function Dashboard() {
         <div className="xl:col-span-2">
           <TradingChart
             symbol={selectedAsset}
-            data={mockChartData[selectedAsset] || mockChartData['BTC-USD']}
+            data={mockChartData[selectedAsset as keyof typeof mockChartData] || mockChartData['BTC-USD']}
             currentPrice={selectedAsset === 'BTC-USD' ? 45750 : selectedAsset === 'ETH-USD' ? 2895 : 15.75}
             priceChange={selectedAsset === 'BTC-USD' ? 750 : selectedAsset === 'ETH-USD' ? 45 : 0.55}
             priceChangePercent={selectedAsset === 'BTC-USD' ? 1.67 : selectedAsset === 'ETH-USD' ? 1.58 : 3.61}
@@ -532,9 +633,19 @@ export function Dashboard() {
         {/* Current Positions - Compact */}
         <div className="xl:col-span-1">
           <PositionsTable 
-            positions={mockPositions}
-            onClosePosition={(id) => console.log('Close position:', id)}
-            compact={true}
+            positions={positions}
+            onClosePosition={async (id) => {
+              try {
+                if (apiConnected) {
+                  await apiService.closePosition(id);
+                  fetchDashboardData(); // Refresh data
+                } else {
+                  console.log('Demo mode - would close position:', id);
+                }
+              } catch (error) {
+                console.error('Error closing position:', error);
+              }
+            }}
           />
         </div>
 
@@ -548,7 +659,7 @@ export function Dashboard() {
               <div className="space-y-3">
                 <h4 className="text-sm font-medium text-gray-400 mb-2">Recent Trades</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {mockTrades.slice(0, 4).map((trade) => (
+                  {trades.slice(0, 4).map((trade) => (
                     <div key={trade.id} className="flex items-center justify-between p-2 bg-gray-800 rounded text-sm">
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${
@@ -560,10 +671,10 @@ export function Dashboard() {
                         </div>
                       </div>
                       <div className={`text-right ${
-                        trade.realizedPnl > 0 ? 'text-green-400' : 'text-red-400'
+                        (trade.realizedPnl || 0) > 0 ? 'text-green-400' : 'text-red-400'
                       }`}>
                         <div className="font-medium">
-                          {trade.realizedPnl > 0 ? '+' : ''}${trade.realizedPnl.toFixed(2)}
+                          {(trade.realizedPnl || 0) > 0 ? '+' : ''}${(trade.realizedPnl || 0).toFixed(2)}
                         </div>
                         <div className="text-xs text-gray-400">
                           {new Date(trade.timestamp).toLocaleTimeString()}

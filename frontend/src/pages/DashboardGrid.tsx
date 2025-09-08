@@ -4,7 +4,7 @@ import { TradingChart } from '../components/dashboard/TradingChart';
 import { PositionsTable, Position } from '../components/dashboard/PositionsTable';
 import { TradesTable, Trade } from '../components/dashboard/TradesTable';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -51,14 +51,56 @@ const mockChartData = {
 };
 
 const mockPositions: Position[] = [
-  { symbol: 'BTC-USD', side: 'LONG', size: 0.5, entryPrice: 44200, currentPrice: 45750, pnl: 775, percentage: 1.75, margin: 7350 },
-  { symbol: 'ETH-USD', side: 'SHORT', size: -2.0, entryPrice: 2920, currentPrice: 2895, pnl: 50, percentage: 0.86, margin: 1460 }
+  { id: 1, symbol: 'BTC-USD', side: 'LONG', size: 0.5, entryPrice: 44200, markPrice: 45750, unrealizedPnl: 775, unrealizedPnlPercent: 1.75, leverage: 3, margin: 7350, openedAt: '2024-01-15T10:30:00Z' },
+  { id: 2, symbol: 'ETH-USD', side: 'SHORT', size: -2.0, entryPrice: 2920, markPrice: 2895, unrealizedPnl: 50, unrealizedPnlPercent: 0.86, leverage: 3, margin: 1460, openedAt: '2024-01-15T11:00:00Z' }
 ];
 
 const mockTrades: Trade[] = [
-  { id: '1', symbol: 'BTC-USD', side: 'BUY', size: 0.25, price: 44800, time: '10:28:45', pnl: 237.50, status: 'FILLED' },
-  { id: '2', symbol: 'LINK-USD', side: 'SELL', size: -100, price: 15.62, time: '10:15:23', pnl: -23.00, status: 'FILLED' },
-  { id: '3', symbol: 'ETH-USD', side: 'SELL', size: -1.5, price: 2910, time: '09:45:12', pnl: 22.50, status: 'FILLED' }
+  { 
+    id: 1, 
+    orderId: 'order_001', 
+    symbol: 'BTC-USD', 
+    side: 'BUY', 
+    orderType: 'MARKET',
+    size: 0.25, 
+    price: 44800, 
+    filledSize: 0.25,
+    notionalValue: 11200,
+    commission: 11.20,
+    realizedPnl: 237.50,
+    timestamp: '2024-01-15T10:28:45Z', 
+    status: 'FILLED' 
+  },
+  { 
+    id: 2, 
+    orderId: 'order_002', 
+    symbol: 'LINK-USD', 
+    side: 'SELL', 
+    orderType: 'MARKET',
+    size: -100, 
+    price: 15.62, 
+    filledSize: -100,
+    notionalValue: 1562,
+    commission: 1.56,
+    realizedPnl: -23.00,
+    timestamp: '2024-01-15T10:15:23Z', 
+    status: 'FILLED' 
+  },
+  { 
+    id: 3, 
+    orderId: 'order_003', 
+    symbol: 'ETH-USD', 
+    side: 'SELL', 
+    orderType: 'MARKET',
+    size: -1.5, 
+    price: 2910, 
+    filledSize: -1.5,
+    notionalValue: 4365,
+    commission: 4.37,
+    realizedPnl: 22.50,
+    timestamp: '2024-01-15T09:45:12Z', 
+    status: 'FILLED' 
+  }
 ];
 
 const positionDistribution = [
@@ -134,7 +176,7 @@ export function DashboardGrid() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLayoutChange = (layout: Layout[], layouts: any) => {
+  const handleLayoutChange = (_layout: Layout[], layouts: any) => {
     setLayouts(layouts);
   };
 
@@ -212,7 +254,7 @@ export function DashboardGrid() {
           <div className="h-full">
             <TradingChart
               symbol={selectedAsset}
-              data={mockChartData[selectedAsset] || mockChartData['BTC-USD']}
+              data={mockChartData[selectedAsset as keyof typeof mockChartData] || mockChartData['BTC-USD']}
               currentPrice={selectedAsset === 'BTC-USD' ? 45750 : selectedAsset === 'ETH-USD' ? 2895 : 15.75}
               priceChange={selectedAsset === 'BTC-USD' ? 750 : selectedAsset === 'ETH-USD' ? 45 : 0.55}
               priceChangePercent={selectedAsset === 'BTC-USD' ? 1.67 : selectedAsset === 'ETH-USD' ? 1.58 : 3.61}

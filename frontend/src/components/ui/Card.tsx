@@ -1,13 +1,29 @@
-import { ReactNode } from 'react';
+import { ReactNode, DragEvent } from 'react';
 import { cn } from '../../utils/cn';
 
 interface CardProps {
   children: ReactNode;
   className?: string;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  draggable?: boolean;
+  onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: () => void;
+  onDragOver?: (e: DragEvent<HTMLDivElement>) => void;
+  onDrop?: (e: DragEvent<HTMLDivElement>) => void;
+  onClick?: () => void;
 }
 
-export function Card({ children, className, padding = 'md' }: CardProps) {
+export function Card({ 
+  children, 
+  className, 
+  padding = 'md', 
+  draggable, 
+  onDragStart, 
+  onDragEnd, 
+  onDragOver, 
+  onDrop,
+  onClick 
+}: CardProps) {
   const paddingClasses = {
     none: '',
     sm: 'p-4',
@@ -16,11 +32,19 @@ export function Card({ children, className, padding = 'md' }: CardProps) {
   };
 
   return (
-    <div className={cn(
-      'bg-gray-900 border border-gray-700 rounded-lg shadow-lg',
-      paddingClasses[padding],
-      className
-    )}>
+    <div 
+      className={cn(
+        'bg-gray-900 border border-gray-700 rounded-lg shadow-lg',
+        paddingClasses[padding],
+        className
+      )}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onClick={onClick}
+    >
       {children}
     </div>
   );
