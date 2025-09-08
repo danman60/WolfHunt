@@ -150,10 +150,23 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-2 space-y-2">
       {/* Bot Status Bar - Primary Focus */}
-      <Card className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700">
+      <Card className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 relative group hover:border-blue-500 transition-colors">
         <CardContent className="p-4">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-50 transition-opacity cursor-move text-blue-300" title="Drag to reposition">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="3" cy="3" r="1"/>
+              <circle cx="8" cy="3" r="1"/>
+              <circle cx="13" cy="3" r="1"/>
+              <circle cx="3" cy="8" r="1"/>
+              <circle cx="8" cy="8" r="1"/>
+              <circle cx="13" cy="8" r="1"/>
+              <circle cx="3" cy="13" r="1"/>
+              <circle cx="8" cy="13" r="1"/>
+              <circle cx="13" cy="13" r="1"/>
+            </svg>
+          </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
@@ -194,7 +207,7 @@ export function Dashboard() {
       <PortfolioStats stats={mockPortfolioStats} />
 
       {/* Main Trading Interface - Optimized Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
         {/* Primary Chart - BTC-USD */}
         <div className="xl:col-span-2">
           <TradingChart
@@ -207,7 +220,7 @@ export function Dashboard() {
         </div>
 
         {/* Asset Selector & Mini Charts */}
-        <div className="xl:col-span-1 space-y-3">
+        <div className="xl:col-span-1 space-y-2">
           {/* Asset Selection */}
           <Card>
             <CardHeader className="pb-2">
@@ -305,7 +318,7 @@ export function Dashboard() {
         </div>
 
         {/* Performance Metrics & Bot Stats */}
-        <div className="xl:col-span-1 space-y-3">
+        <div className="xl:col-span-1 space-y-2">
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold text-white">Performance Today</h3>
@@ -374,7 +387,7 @@ export function Dashboard() {
       </div>
 
       {/* Compact Performance Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold text-white">Daily Trading Volume</h3>
@@ -458,7 +471,7 @@ export function Dashboard() {
       </div>
 
       {/* Combined Positions & Activity Feed */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
         {/* Current Positions - Compact */}
         <div className="xl:col-span-1">
           <PositionsTable 
