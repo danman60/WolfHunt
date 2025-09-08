@@ -61,7 +61,7 @@ export function TradesTable({ trades, showAll = false, onShowAll }: TradesTableP
         </div>
       </CardHeader>
       
-      <CardContent padding="none">
+      <CardContent>
         {displayTrades.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             No trades yet

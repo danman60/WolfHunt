@@ -47,7 +47,7 @@ export function PositionsTable({ positions, onClosePosition }: PositionsTablePro
         </div>
       </CardHeader>
       
-      <CardContent padding="none">
+      <CardContent>
         {positions.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             No open positions

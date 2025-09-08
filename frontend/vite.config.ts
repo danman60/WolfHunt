@@ -17,7 +17,7 @@ export default defineConfig({
           // Vendor chunk for better caching
           vendor: ['react', 'react-dom'],
           // Chart libraries
-          charts: ['lightweight-charts'],
+          charts: ['recharts'],
           // UI libraries (if any)
           ui: ['clsx']
         }

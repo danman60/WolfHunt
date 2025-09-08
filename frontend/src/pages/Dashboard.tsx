@@ -100,7 +100,7 @@ const assetDistribution = [
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export function Dashboard() {
-  const [selectedAsset, setSelectedAsset] = useState('BTC-USD');
+  const [selectedAsset] = useState('BTC-USD');
   const [totalVolume, setTotalVolume] = useState(5645);
   const [tradeCount, setTradeCount] = useState(34);
   const [avgVolume, setAverageVolume] = useState(166.03);
@@ -155,7 +155,7 @@ export function Dashboard() {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {assetDistribution.map((entry, index) => (
+                      {assetDistribution.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
