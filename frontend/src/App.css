@@ -8,7 +8,7 @@
 }
 
 .metric-card {
-  @apply bg-gradient-to-r from-gray-800 to-gray-750 p-4 rounded-lg border border-gray-600;
+  @apply bg-gradient-to-r from-gray-800 to-gray-700 p-4 rounded-lg border border-gray-600;
 }
 
 .status-indicator {
