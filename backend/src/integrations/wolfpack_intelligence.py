@@ -18,6 +18,15 @@ import redis
 import logging
 from decimal import Decimal
 
+# Import our new real market data service
+try:
+    from .real_market_data import market_data_service
+    REAL_DATA_AVAILABLE = True
+    logging.info("Real market data service loaded successfully")
+except ImportError:
+    REAL_DATA_AVAILABLE = False
+    logging.warning("Real market data service not available, using mock data")
+
 logger = logging.getLogger(__name__)
 
 # 📊 Database models for Wolf Pack intelligence storage
