@@ -8,6 +8,7 @@ import type { Trade } from '../components/dashboard/TradesTable';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { apiService, getMockDashboardData, type DashboardData } from '../services/api';
+import { WolfPackDashboard, LiveAlertBanner } from '../components/WolfPack/WolfPackIntelligence';
 
 // Generate portfolio stats from dashboard data
 const getPortfolioStats = (data: DashboardData | null) => {
@@ -270,6 +271,9 @@ export function Dashboard() {
 
   return (
     <div className="p-2 space-y-1">
+      {/* Live Alert Banner */}
+      <LiveAlertBanner />
+
       {/* Bot Status Bar - Primary Focus */}
       <div 
         className="bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 relative group hover:border-blue-500 transition-colors rounded-lg border"
@@ -333,6 +337,9 @@ export function Dashboard() {
         </CardContent>
         </Card>
       </div>
+
+      {/* 🐺 WOLF PACK INTELLIGENCE SECTION */}
+      <WolfPackDashboard />
 
       {/* Portfolio Performance Stats */}
       <PortfolioStats stats={getPortfolioStats(dashboardData)} />
