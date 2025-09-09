@@ -1,4 +1,15 @@
-# Minimal requirements for simple_main.py
+# Requirements for dYdX Trading Bot with Wolf Pack Intelligence
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
+
+# Wolf Pack Intelligence dependencies
+httpx==0.24.1
+redis==5.0.8
+pydantic==2.5.3
+sqlalchemy==2.0.43
+
+# Additional dependencies for Wolf Pack features
+greenlet>=1.0.0
+importlib-metadata>=1.0.0
+typing-extensions>=4.0.0

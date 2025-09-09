@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Sidebar } from './components/layout/Sidebar'
 import { Header } from './components/layout/Header'
 import { Dashboard } from './pages/Dashboard'
+import { IntelligenceBrief } from './pages/IntelligenceBrief'
 import { Trading } from './pages/Trading'
 import { History } from './pages/History'
 import { Strategy } from './pages/Strategy'
@@ -43,6 +44,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/intelligence" element={<IntelligenceBrief />} />
                 <Route path="/trading" element={<Trading />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/strategy" element={<Strategy />} />

@@ -10,11 +10,13 @@ import {
   ArrowPathIcon,
   Bars3Icon,
   XMarkIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  BoltIcon
 } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Intelligence Brief', href: '/intelligence', icon: BoltIcon },
   { name: 'Trading', href: '/trading', icon: ChartBarIcon },
   { name: 'History', href: '/history', icon: ClockIcon },
   { name: 'Strategy', href: '/strategy', icon: CogIcon },
