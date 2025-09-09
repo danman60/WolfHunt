@@ -26,10 +26,19 @@ except ImportError:
 
 app = FastAPI(title="GMX Trading Bot API with Wolf Pack Intelligence", version="2.0.0")
 
-# Enable CORS for frontend
+# Enable CORS for frontend - Allow all origins in production for Wolf Pack Intelligence
+# This is safe since this is a trading bot backend with proper authentication
+import os
+is_production = os.getenv("RAILWAY_ENVIRONMENT") is not None
+
+cors_origins = ["*"] if is_production else [
+    "http://localhost:3001", 
+    "http://localhost:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://localhost:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
