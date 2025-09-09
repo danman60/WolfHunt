@@ -1,5 +1,8 @@
 // API service for connecting to the dYdX trading bot backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Use Railway backend in production, relative path for local development
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? '' // Use relative path in production (Netlify will proxy via netlify.toml)
+  : process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 // Types for API responses
 export interface DashboardData {
