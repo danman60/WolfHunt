@@ -699,6 +699,130 @@ async def get_system_health():
         "arbitrum_network": "connected"
     }
 
+# 🔍 API HEALTH MONITORING ENDPOINTS
+
+@app.get("/api/v1/api-health")
+async def get_api_health():
+    """🔍 Comprehensive API Health Check - Monitor all external data sources"""
+    health_report = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "overall_status": "UNKNOWN",
+        "data_sources": {}
+    }
+    
+    try:
+        from src.integrations.real_market_data import market_data_service
+        
+        # Test CoinGecko API directly
+        coingecko_status = {
+            "name": "CoinGecko API",
+            "status": "UNKNOWN",
+            "last_update": None,
+            "error": None,
+            "response_time_ms": None,
+            "data_points": 0,
+            "sample_prices": {}
+        }
+        
+        import time
+        start_time = time.time()
+        
+        try:
+            # Test live price fetch
+            live_prices = await market_data_service.get_live_prices()
+            response_time = (time.time() - start_time) * 1000
+            
+            if live_prices and any(live_prices.values()):
+                coingecko_status.update({
+                    "status": "OPERATIONAL",
+                    "last_update": datetime.utcnow().isoformat(),
+                    "response_time_ms": round(response_time, 2),
+                    "data_points": len(live_prices),
+                    "sample_prices": {k: v.get('price', 0) for k, v in live_prices.items()}
+                })
+                
+                # Validate prices are reasonable (basic sanity check)
+                eth_price = live_prices.get('ETH', {}).get('price', 0)
+                if eth_price < 1000 or eth_price > 10000:
+                    coingecko_status["status"] = "DEGRADED"
+                    coingecko_status["error"] = f"ETH price {eth_price} seems unrealistic"
+                    
+            else:
+                coingecko_status.update({
+                    "status": "FAILED",
+                    "error": "No price data returned",
+                    "response_time_ms": round(response_time, 2)
+                })
+                
+        except Exception as e:
+            coingecko_status.update({
+                "status": "FAILED", 
+                "error": str(e),
+                "response_time_ms": (time.time() - start_time) * 1000
+            })
+        
+        health_report["data_sources"]["coingecko"] = coingecko_status
+        
+        # Test historical data capability
+        historical_status = {
+            "name": "Historical Data",
+            "status": "UNKNOWN",
+            "error": None,
+            "last_successful_fetch": None
+        }
+        
+        try:
+            eth_historical = await market_data_service.get_historical_data('ETH', days=1)
+            if len(eth_historical) > 0:
+                historical_status.update({
+                    "status": "OPERATIONAL",
+                    "last_successful_fetch": datetime.utcnow().isoformat(),
+                    "data_points": len(eth_historical)
+                })
+            else:
+                historical_status.update({
+                    "status": "LIMITED", 
+                    "error": "No historical data available (may require API key)"
+                })
+        except Exception as e:
+            historical_status.update({
+                "status": "FAILED",
+                "error": str(e)
+            })
+            
+        health_report["data_sources"]["historical"] = historical_status
+        
+        # Determine overall status
+        if coingecko_status["status"] == "OPERATIONAL":
+            health_report["overall_status"] = "OPERATIONAL"
+        elif coingecko_status["status"] == "DEGRADED":
+            health_report["overall_status"] = "DEGRADED"  
+        else:
+            health_report["overall_status"] = "FAILED"
+            
+    except ImportError:
+        health_report["data_sources"]["coingecko"] = {
+            "name": "CoinGecko API",
+            "status": "NOT_CONFIGURED",
+            "error": "Real market data service not available"
+        }
+        health_report["overall_status"] = "NOT_CONFIGURED"
+    
+    # Add cache status
+    try:
+        from src.integrations.real_market_data import market_data_service
+        cache_info = {
+            "name": "Price Cache",
+            "status": "OPERATIONAL" if hasattr(market_data_service, 'cache') else "DISABLED",
+            "cache_size": len(getattr(market_data_service, 'cache', {})),
+            "ttl_seconds": getattr(market_data_service, 'cache_ttl', 0)
+        }
+        health_report["data_sources"]["cache"] = cache_info
+    except:
+        pass
+    
+    return health_report
+
 # 📄 PAPER TRADING EXECUTION ENDPOINTS
 
 @app.post("/api/v1/paper-trade/execute")

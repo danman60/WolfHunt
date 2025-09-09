@@ -44,6 +44,7 @@ class RealMarketDataService:
         
         # Check cache first
         if self._is_cached(cache_key):
+            logger.info(f"Using cached prices (age: {time.time() - self.cache[cache_key]['timestamp']:.1f}s)")
             return self.cache[cache_key]['data']
         
         try:
@@ -58,9 +59,16 @@ class RealMarketDataService:
                     'include_24hr_vol': 'true'
                 }
                 
+                logger.info(f"Fetching live prices from CoinGecko: {url}")
                 response = await client.get(url, params=params)
+                
+                # Log response details for debugging
+                logger.info(f"CoinGecko API Response: Status={response.status_code}, Headers={dict(response.headers)}")
+                
                 response.raise_for_status()
                 data = response.json()
+                
+                logger.info(f"Raw CoinGecko data: {data}")
                 
                 # Convert to our format
                 prices = {}
@@ -69,22 +77,37 @@ class RealMarketDataService:
                         prices[symbol] = {
                             'price': data[coingecko_id]['usd'],
                             '24h_change': data[coingecko_id].get('usd_24h_change', 0),
-                            '24h_volume': data[coingecko_id].get('usd_24h_vol', 0)
+                            '24h_volume': data[coingecko_id].get('usd_24h_vol', 0),
+                            'last_updated': datetime.utcnow().isoformat(),
+                            'source': 'coingecko_api'
                         }
+                    else:
+                        logger.warning(f"No data found for {symbol} ({coingecko_id})")
                 
-                # Cache the result
+                if not prices:
+                    logger.error("No price data extracted from CoinGecko response")
+                    return self._get_fallback_prices()
+                
+                # Cache the result with additional metadata
                 self.cache[cache_key] = {
                     'data': prices,
-                    'timestamp': time.time()
+                    'timestamp': time.time(),
+                    'source': 'coingecko_api',
+                    'response_status': response.status_code
                 }
                 
-                logger.info(f"Fetched live prices: {prices}")
+                logger.info(f"Successfully fetched {len(prices)} live prices: {prices}")
                 return prices
                 
+        except httpx.TimeoutException:
+            logger.error("CoinGecko API timeout")
+            return self._get_fallback_prices_with_error("API_TIMEOUT")
+        except httpx.HTTPStatusError as e:
+            logger.error(f"CoinGecko API HTTP error: {e.response.status_code} - {e.response.text}")
+            return self._get_fallback_prices_with_error(f"HTTP_{e.response.status_code}")
         except Exception as e:
-            logger.error(f"Error fetching live prices: {e}")
-            # Return last cached data or fallback
-            return self._get_fallback_prices()
+            logger.error(f"Unexpected error fetching live prices: {e}")
+            return self._get_fallback_prices_with_error(f"ERROR_{type(e).__name__}")
     
     async def get_historical_data(self, symbol: str, days: int = 7) -> List[Dict]:
         """Get historical price data for technical analysis"""
@@ -289,10 +312,59 @@ class RealMarketDataService:
     
     def _get_fallback_prices(self) -> Dict[str, Dict]:
         """Fallback prices when API fails"""
+        fallback_timestamp = datetime.utcnow().isoformat()
         return {
-            'ETH': {'price': 2850.0, '24h_change': 2.5, '24h_volume': 15000000000},
-            'WBTC': {'price': 45800.0, '24h_change': 1.8, '24h_volume': 500000000},
-            'LINK': {'price': 15.75, '24h_change': 3.2, '24h_volume': 800000000}
+            'ETH': {
+                'price': 2850.0, 
+                '24h_change': 2.5, 
+                '24h_volume': 15000000000,
+                'last_updated': fallback_timestamp,
+                'source': 'fallback_data'
+            },
+            'WBTC': {
+                'price': 45800.0, 
+                '24h_change': 1.8, 
+                '24h_volume': 500000000,
+                'last_updated': fallback_timestamp,
+                'source': 'fallback_data'
+            },
+            'LINK': {
+                'price': 15.75, 
+                '24h_change': 3.2, 
+                '24h_volume': 800000000,
+                'last_updated': fallback_timestamp,
+                'source': 'fallback_data'
+            }
+        }
+    
+    def _get_fallback_prices_with_error(self, error_code: str) -> Dict[str, Dict]:
+        """Fallback prices with error information"""
+        fallback_timestamp = datetime.utcnow().isoformat()
+        return {
+            'ETH': {
+                'price': 2850.0, 
+                '24h_change': 2.5, 
+                '24h_volume': 15000000000,
+                'last_updated': fallback_timestamp,
+                'source': 'fallback_data',
+                'error': error_code
+            },
+            'WBTC': {
+                'price': 45800.0, 
+                '24h_change': 1.8, 
+                '24h_volume': 500000000,
+                'last_updated': fallback_timestamp,
+                'source': 'fallback_data',
+                'error': error_code
+            },
+            'LINK': {
+                'price': 15.75, 
+                '24h_change': 3.2, 
+                '24h_volume': 800000000,
+                'last_updated': fallback_timestamp,
+                'source': 'fallback_data',
+                'error': error_code
+            }
         }
     
     def _get_fallback_indicators(self, symbol: str) -> Dict:
