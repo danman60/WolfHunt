@@ -1,5 +1,5 @@
 """
-Simple FastAPI server for testing the dYdX trading bot frontend integration
+Simple FastAPI server for testing the GMX trading bot frontend integration
 """
 
 from fastapi import FastAPI
@@ -9,7 +9,7 @@ from datetime import datetime
 import random
 import os
 
-app = FastAPI(title="dYdX Trading Bot API", version="1.0.0")
+app = FastAPI(title="GMX Trading Bot API", version="1.0.0")
 
 # Enable CORS for frontend
 app.add_middleware(
@@ -160,10 +160,11 @@ async def get_health():
 
 @app.get("/")
 async def root():
-    return {"message": "dYdX Trading Bot API", "status": "running"}
+    return {"message": "GMX Trading Bot API", "status": "running", "network": "arbitrum"}
 
 if __name__ == "__main__":
-    print("Starting dYdX Trading Bot API Server...")
+    print("Starting GMX Trading Bot API Server...")
+    print("Network: Arbitrum")
     print("Dashboard available at: http://localhost:3001")
     print("API available at: http://localhost:8000")
     print("API docs at: http://localhost:8000/docs")

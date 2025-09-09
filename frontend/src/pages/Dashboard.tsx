@@ -62,7 +62,7 @@ const getPortfolioStats = (data: DashboardData | null) => {
   ];
 };
 
-// dYdX perpetuals price data
+// GMX perpetuals price data
 const mockChartData = {
   'BTC-USD': [
     { time: '09:00', price: 45000, ema12: 44980, ema26: 44920, volume: 1250 },
@@ -156,7 +156,7 @@ const volumeData = [
   { time: '15:00', volume: 2600 }
 ];
 
-// dYdX perpetuals position distribution
+// GMX perpetuals position distribution
 const positionDistribution = [
   { name: 'BTC-USD', value: 65.0, color: '#F59E0B', exposure: '$52,000' },
   { name: 'ETH-USD', value: 25.0, color: '#3B82F6', exposure: '$20,000' },
@@ -362,7 +362,7 @@ export function Dashboard() {
             onDrop={(e) => handleDrop(e, 'asset-selector')}
           >
             <CardHeader className="pb-2">
-              <h3 className="text-lg font-semibold text-white">dYdX Perpetuals</h3>
+              <h3 className="text-lg font-semibold text-white">GMX Perpetuals</h3>
             </CardHeader>
             <CardContent className="space-y-3">
               {['BTC-USD', 'ETH-USD', 'LINK-USD'].map((symbol) => {
