@@ -31,18 +31,24 @@ app = FastAPI(title="GMX Trading Bot API with Wolf Pack Intelligence", version="
 import os
 is_production = os.getenv("RAILWAY_ENVIRONMENT") is not None
 
-cors_origins = ["*"] if is_production else [
-    "http://localhost:3001", 
-    "http://localhost:3000"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if is_production:
+    # In production, allow all origins but disable credentials to avoid CORS conflicts
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    # In development, restrict to localhost and allow credentials
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3001", "http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Mock data for demonstration
 @app.get("/api/trading/dashboard")
