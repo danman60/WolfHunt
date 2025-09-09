@@ -201,10 +201,31 @@ async def get_unified_intelligence():
         # Fetch live market data
         live_prices = await market_data_service.get_live_prices()
         
-        # Get technical indicators for each symbol
-        eth_indicators = await market_data_service.calculate_technical_indicators('ETH')
-        link_indicators = await market_data_service.calculate_technical_indicators('LINK')  
-        wbtc_indicators = await market_data_service.calculate_technical_indicators('WBTC')
+        # Get technical indicators for each symbol (with fallback if they fail)
+        try:
+            eth_indicators = await market_data_service.calculate_technical_indicators('ETH')
+        except:
+            eth_indicators = market_data_service._get_fallback_indicators('ETH')
+            # Override with live price if available
+            if 'ETH' in live_prices:
+                eth_indicators['price'] = live_prices['ETH']['price']
+                eth_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+        
+        try:
+            link_indicators = await market_data_service.calculate_technical_indicators('LINK')
+        except:
+            link_indicators = market_data_service._get_fallback_indicators('LINK')
+            if 'LINK' in live_prices:
+                link_indicators['price'] = live_prices['LINK']['price']
+                link_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+        
+        try:
+            wbtc_indicators = await market_data_service.calculate_technical_indicators('WBTC')
+        except:
+            wbtc_indicators = market_data_service._get_fallback_indicators('WBTC')
+            if 'WBTC' in live_prices:
+                wbtc_indicators['price'] = live_prices['WBTC']['price']
+                wbtc_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
         
         # Generate AI-powered narrative analysis (enhanced with real data context)
         def generate_narrative(symbol: str, indicators: dict, price_data: dict) -> str:
@@ -340,7 +361,10 @@ async def get_unified_intelligence():
                 "brief_status": "ACTIVE",
                 "last_update": datetime.utcnow().isoformat(),
                 "data_freshness": "FRESH",
-                "api_health": "OPTIMAL"
+                "api_health": "OPTIMAL",
+                "price_data_source": "LIVE_COINGECKO" if live_prices else "FALLBACK",
+                "live_prices_available": bool(live_prices),
+                "coingecko_status": "OPERATIONAL" if live_prices else "FAILED"
             }
         }
         
