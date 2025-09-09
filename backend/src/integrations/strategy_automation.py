@@ -71,7 +71,7 @@ class ExecutionRecord(Base):
     pnl_realized = Column(Float)
     execution_time = Column(DateTime)
     approval_time = Column(DateTime)
-    metadata = Column(JSON)  # Store additional execution details
+    execution_metadata = Column(JSON)  # Store additional execution details
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class PortfolioState(BaseModel):
@@ -621,7 +621,7 @@ class StrategyAutomationEngine:
                 transaction_id=execution_result.get("transaction_id"),
                 execution_time=datetime.utcnow(),
                 approval_time=datetime.utcnow(),
-                metadata={
+                execution_metadata={
                     "execution_plan": execution_plan.dict(),
                     "execution_result": execution_result
                 }

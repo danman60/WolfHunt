@@ -277,6 +277,35 @@ class ApiService {
       return false;
     }
   }
+
+  // Wolf Pack Intelligence API Methods
+  async getUnifiedIntelligence(): Promise<any> {
+    return this.request('/api/v1/unified-intelligence');
+  }
+
+  async getLiveSignals(): Promise<any> {
+    return this.request('/api/v1/live-signals');
+  }
+
+  async executeStrategySuggestion(suggestionData: any): Promise<any> {
+    return this.request('/api/v1/execute-suggestion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(suggestionData),
+    });
+  }
+
+  async getPerformanceMetrics(): Promise<any> {
+    return this.request('/api/v1/performance-metrics');
+  }
+
+  async getAutomationStatus(): Promise<any> {
+    return this.request('/api/v1/automation/status');
+  }
+
+  async getSystemHealthV1(): Promise<any> {
+    return this.request('/api/v1/system-health');
+  }
 }
 
 // Export singleton instance

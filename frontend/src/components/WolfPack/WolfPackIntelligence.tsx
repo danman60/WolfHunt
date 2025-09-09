@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '../ui/Card';
+import { apiService } from '../../services/api';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -85,9 +86,7 @@ export const WolfPackDashboard: React.FC = () => {
   // 📡 Fetch Wolf Pack intelligence data
   const fetchIntelligence = async () => {
     try {
-      const response = await fetch('/api/v1/unified-intelligence');
-      if (!response.ok) throw new Error('Failed to fetch intelligence');
-      const data = await response.json();
+      const data = await apiService.getUnifiedIntelligence();
       setIntelligence(data);
       setError(null);
     } catch (err) {
@@ -97,9 +96,7 @@ export const WolfPackDashboard: React.FC = () => {
 
   const fetchLiveSignals = async () => {
     try {
-      const response = await fetch('/api/v1/live-signals');
-      if (!response.ok) return; // Don't error on live signals failure
-      const data = await response.json();
+      const data = await apiService.getLiveSignals();
       setLiveSignals(data);
     } catch (err) {
       console.warn('Live signals fetch failed:', err);
@@ -109,17 +106,11 @@ export const WolfPackDashboard: React.FC = () => {
   // 💰 Execute strategy suggestion
   const executeSuggestion = async (suggestion: StrategyAdjustment, approved: boolean) => {
     try {
-      const response = await fetch('/api/v1/execute-suggestion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          suggestion_id: Math.random(), // Would be real ID in production
-          approved,
-          suggestion_data: suggestion
-        }),
+      const result = await apiService.executeStrategySuggestion({
+        suggestion_id: Math.random(), // Would be real ID in production
+        approved,
+        suggestion_data: suggestion
       });
-      
-      const result = await response.json();
       
       // Show feedback to user
       if (approved) {
@@ -541,11 +532,8 @@ const PortfolioMetricsPanel: React.FC = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('/api/v1/performance-metrics');
-        if (response.ok) {
-          const data = await response.json();
-          setMetrics(data);
-        }
+        const data = await apiService.getPerformanceMetrics();
+        setMetrics(data);
       } catch (err) {
         console.warn('Failed to fetch performance metrics:', err);
       }
