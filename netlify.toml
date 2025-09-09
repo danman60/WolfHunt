@@ -18,12 +18,11 @@
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
-# API proxy to Railway backend - MUST come before SPA routing
+# API proxy using Netlify Functions (more reliable than redirects)
 [[redirects]]
   from = "/api/*"
-  to = "https://wolfhunt-production.up.railway.app/api/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
-  force = true
 
 # Redirect rules for SPA routing - catch-all MUST be last
 [[redirects]]
