@@ -1,6 +1,6 @@
 // API service for connecting to the dYdX trading bot backend
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? '' // Use relative path in production (Netlify will proxy to Railway via netlify.toml)
+  ? '/.netlify/functions' // Use Netlify Functions in production (direct path to working function)
   : 'http://localhost:8000'; // Local development - connect to local backend
 
 // Types for API responses

@@ -21,7 +21,7 @@
 # API proxy using Netlify Functions (more reliable than redirects)
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/.netlify/functions/api/*"
   status = 200
 
 # Redirect rules for SPA routing - catch-all MUST be last
