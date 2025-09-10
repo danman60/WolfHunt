@@ -155,4 +155,4 @@ if (window.WolfHuntFlags.isEnabled('debug-mode')) {
   console.log('🔧 WolfHunt Dev Tools: Available via window.wolfhunt');
 }
 
-export default FeatureFlags;
+// Export removed for browser script tag compatibility
