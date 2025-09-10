@@ -256,6 +256,17 @@ export function Dashboard() {
 
   // Price feeds update interval - separate from dashboard data
   useEffect(() => {
+    // Initial price fetch
+    const fetchInitialPrices = async () => {
+      try {
+        const prices = await apiService.getGMXPrices();
+        setGmxPrices(prices);
+      } catch (error) {
+        console.warn('Initial price fetch failed:', error);
+      }
+    };
+    fetchInitialPrices();
+
     const priceInterval = setInterval(async () => {
       try {
         const prices = await apiService.getGMXPrices();
@@ -263,7 +274,7 @@ export function Dashboard() {
       } catch (error) {
         console.warn('Price update failed:', error);
       }
-    }, 15000); // Update prices every 15 seconds
+    }, 30000); // Update prices every 30 seconds (less aggressive)
 
     return () => clearInterval(priceInterval);
   }, []); // No dependencies - always run
@@ -278,12 +289,15 @@ export function Dashboard() {
         setDashboardData(data);
       } catch (error) {
         console.warn('Dashboard data update failed:', error);
-        // Only disconnect if it's a real connectivity issue, not a parse error
+        // Only disconnect if it's a real connectivity issue, not a parse error or 404
         if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
           setApiConnected(false);
+        } else if (error.message.includes('Not Found')) {
+          // Backend API endpoint doesn't exist, use fallback data but keep trying
+          console.warn('Backend API not available, using fallback data');
         }
       }
-    }, 30000); // Update dashboard data every 30 seconds
+    }, 60000); // Update dashboard data every 60 seconds (even less aggressive)
 
     return () => clearInterval(dataInterval);
   }, [apiConnected]);
