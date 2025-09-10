@@ -122,9 +122,19 @@ class ApiService {
       ...options,
     };
 
+    let response: Response;
+    let responseText: string;
+    
     try {
-      const response = await fetch(url, config);
-      
+      response = await fetch(url, config);
+      // Always read the body once and only once
+      responseText = await response.text();
+    } catch (error) {
+      console.error(`Network Error (${endpoint}):`, error);
+      throw error;
+    }
+
+    try {
       if (!response.ok) {
         if (response.status === 401) {
           // Token expired, redirect to login
@@ -134,24 +144,24 @@ class ApiService {
         }
         
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        try {
-          const responseText = await response.text();
-          if (responseText) {
+        if (responseText) {
+          try {
             const errorData = JSON.parse(responseText);
             errorMessage = errorData.detail || errorMessage;
+          } catch (parseError) {
+            // If JSON parsing fails, use the raw text or default message
+            errorMessage = responseText || errorMessage;
           }
-        } catch (parseError) {
-          // If parsing fails, use default error message
         }
         
         throw new Error(errorMessage);
       }
 
-      // Only call .json() if response was ok
-      const responseText = await response.text();
+      // Parse successful response
       if (!responseText) {
         return {};
       }
+      
       return JSON.parse(responseText);
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);

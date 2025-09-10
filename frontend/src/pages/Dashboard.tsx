@@ -254,24 +254,35 @@ export function Dashboard() {
     fetchDashboardData();
   }, [location.pathname]);
 
-  // Real-time data updates
+  // Price feeds update interval - separate from dashboard data
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (apiConnected) {
-        fetchDashboardData();
-      } else {
-        // Update mock bot status for demo
-        setBotStatus(prev => ({
-          ...prev,
-          signalsToday: prev.signalsToday + Math.floor(Math.random() * 2),
-          executedToday: prev.executedToday + Math.floor(Math.random() * 1.5),
-          avgExecutionTime: Math.floor(120 + Math.random() * 60) + 'ms',
-          successRate: Math.max(90, Math.min(98, prev.successRate + (Math.random() - 0.5) * 2))
-        }));
+    const priceInterval = setInterval(async () => {
+      try {
+        const prices = await apiService.getGMXPrices();
+        setGmxPrices(prices);
+      } catch (error) {
+        console.warn('Price update failed:', error);
       }
-    }, 10000);
+    }, 15000); // Update prices every 15 seconds
 
-    return () => clearInterval(interval);
+    return () => clearInterval(priceInterval);
+  }, []); // No dependencies - always run
+
+  // Dashboard data updates (less frequent)
+  useEffect(() => {
+    if (!apiConnected) return;
+    
+    const dataInterval = setInterval(() => {
+      // Only update dashboard data, not prices
+      apiService.getDashboardData()
+        .then(setDashboardData)
+        .catch(error => {
+          console.warn('Dashboard data update failed:', error);
+          setApiConnected(false);
+        });
+    }, 30000); // Update dashboard data every 30 seconds
+
+    return () => clearInterval(dataInterval);
   }, [apiConnected]);
 
   return (
