@@ -40,7 +40,7 @@ export function TradingChart({
             <h3 className="text-lg font-semibold text-white">{symbol}</h3>
             <div className="flex items-center space-x-2">
               <span className="text-2xl font-bold text-white">
-                ${currentPrice.toLocaleString()}
+                ${(currentPrice || 0).toLocaleString()}
               </span>
               <div className={cn(
                 'flex items-center text-sm font-medium',

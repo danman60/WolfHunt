@@ -27,36 +27,36 @@ const getPortfolioStats = (data: DashboardData | null) => {
   return [
     { 
       label: 'Total Equity', 
-      value: `$${data.total_equity.toLocaleString()}`, 
-      change: data.daily_pnl_percent, 
+      value: `$${(data.total_equity || 0).toLocaleString()}`, 
+      change: data.daily_pnl_percent || 0, 
       changeType: 'percentage' as const, 
       color: 'blue' as const 
     },
     { 
       label: 'Daily P&L', 
-      value: `${data.daily_pnl >= 0 ? '+' : ''}$${data.daily_pnl.toLocaleString()}`, 
-      change: data.daily_pnl_percent, 
+      value: `${(data.daily_pnl || 0) >= 0 ? '+' : ''}$${(data.daily_pnl || 0).toLocaleString()}`, 
+      change: data.daily_pnl_percent || 0, 
       changeType: 'percentage' as const, 
-      color: data.daily_pnl >= 0 ? 'green' as const : 'red' as const 
+      color: (data.daily_pnl || 0) >= 0 ? 'green' as const : 'red' as const 
     },
     { 
       label: 'Unrealized P&L', 
-      value: `${data.total_unrealized_pnl >= 0 ? '+' : ''}$${data.total_unrealized_pnl.toLocaleString()}`, 
-      color: data.total_unrealized_pnl >= 0 ? 'green' as const : 'red' as const 
+      value: `${(data.total_unrealized_pnl || 0) >= 0 ? '+' : ''}$${(data.total_unrealized_pnl || 0).toLocaleString()}`, 
+      color: (data.total_unrealized_pnl || 0) >= 0 ? 'green' as const : 'red' as const 
     },
     { 
       label: 'Used Margin', 
-      value: `$${data.used_margin.toLocaleString()}`, 
+      value: `$${(data.used_margin || 0).toLocaleString()}`, 
       color: 'blue' as const 
     },
     { 
       label: 'Available Margin', 
-      value: `$${data.available_margin.toLocaleString()}`, 
+      value: `$${(data.available_margin || 0).toLocaleString()}`, 
       color: 'gray' as const 
     },
     { 
       label: 'Win Rate', 
-      value: `${data.win_rate.toFixed(1)}%`, 
+      value: `${(data.win_rate || 0).toFixed(1)}%`, 
       change: 0, // Could track change over time
       changeType: 'percentage' as const, 
       color: 'green' as const 
@@ -407,7 +407,7 @@ export function Dashboard() {
                       <div>
                         <div className="font-medium text-white">{symbol}</div>
                         <div className="text-2xl font-bold text-white">
-                          ${symbol === 'LINK-USD' ? price.toFixed(2) : price.toLocaleString()}
+                          ${symbol === 'LINK-USD' ? (price || 0).toFixed(2) : (price || 0).toLocaleString()}
                         </div>
                       </div>
                       <div className={`text-right ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -691,7 +691,7 @@ export function Dashboard() {
                         }`}></div>
                         <div>
                           <div className="text-white font-medium">{trade.side} {trade.symbol}</div>
-                          <div className="text-gray-400 text-xs">{trade.size} @ ${trade.price.toLocaleString()}</div>
+                          <div className="text-gray-400 text-xs">{trade.size} @ ${(trade.price || 0).toLocaleString()}</div>
                         </div>
                       </div>
                       <div className={`text-right ${
