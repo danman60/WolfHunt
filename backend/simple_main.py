@@ -201,31 +201,24 @@ async def get_unified_intelligence():
         # Fetch live market data
         live_prices = await market_data_service.get_live_prices()
         
-        # Get technical indicators for each symbol (with fallback if they fail)
-        try:
-            eth_indicators = await market_data_service.calculate_technical_indicators('ETH')
-        except:
-            eth_indicators = market_data_service._get_fallback_indicators('ETH')
-            # Override with live price if available
-            if 'ETH' in live_prices:
-                eth_indicators['price'] = live_prices['ETH']['price']
-                eth_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+        # Get technical indicators for each symbol (with live price override for fallback data)
+        eth_indicators = await market_data_service.calculate_technical_indicators('ETH')
+        if eth_indicators.get('data_quality') == 'FALLBACK_DATA' and 'ETH' in live_prices:
+            eth_indicators['price'] = live_prices['ETH']['price']
+            eth_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+            print(f"ETH: Upgraded from fallback to live price {live_prices['ETH']['price']}")
         
-        try:
-            link_indicators = await market_data_service.calculate_technical_indicators('LINK')
-        except:
-            link_indicators = market_data_service._get_fallback_indicators('LINK')
-            if 'LINK' in live_prices:
-                link_indicators['price'] = live_prices['LINK']['price']
-                link_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+        link_indicators = await market_data_service.calculate_technical_indicators('LINK')
+        if link_indicators.get('data_quality') == 'FALLBACK_DATA' and 'LINK' in live_prices:
+            link_indicators['price'] = live_prices['LINK']['price']
+            link_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+            print(f"LINK: Upgraded from fallback to live price {live_prices['LINK']['price']}")
         
-        try:
-            wbtc_indicators = await market_data_service.calculate_technical_indicators('WBTC')
-        except:
-            wbtc_indicators = market_data_service._get_fallback_indicators('WBTC')
-            if 'WBTC' in live_prices:
-                wbtc_indicators['price'] = live_prices['WBTC']['price']
-                wbtc_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+        wbtc_indicators = await market_data_service.calculate_technical_indicators('WBTC')
+        if wbtc_indicators.get('data_quality') == 'FALLBACK_DATA' and 'WBTC' in live_prices:
+            wbtc_indicators['price'] = live_prices['WBTC']['price']
+            wbtc_indicators['data_quality'] = 'LIVE_PRICE_FALLBACK_INDICATORS'
+            print(f"WBTC: Upgraded from fallback to live price {live_prices['WBTC']['price']}")
         
         # Generate AI-powered narrative analysis (enhanced with real data context)
         def generate_narrative(symbol: str, indicators: dict, price_data: dict) -> str:
