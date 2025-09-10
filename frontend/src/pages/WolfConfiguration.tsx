@@ -70,8 +70,9 @@ export function WolfConfiguration() {
         setStrategyConfig(config);
         setApiConnected(true);
       } catch (error) {
-        console.warn('Strategy config not available:', error);
+        console.warn('Strategy config API not available - using demo mode:', error);
         setApiConnected(false);
+        // Keep using the default strategy config when API is unavailable
       }
 
       // Get positions (using mock for now)
@@ -124,8 +125,13 @@ export function WolfConfiguration() {
   const handleSaveStrategy = async () => {
     try {
       setLoading(true);
-      await apiService.updateStrategyConfig(strategyConfig);
-      console.log('Strategy configuration saved');
+      if (apiConnected) {
+        await apiService.updateStrategyConfig(strategyConfig);
+        console.log('Strategy configuration saved to backend');
+      } else {
+        console.log('Demo mode - strategy configuration saved locally');
+        // In demo mode, the config is only saved locally in state
+      }
     } catch (error) {
       console.error('Failed to save strategy:', error);
     } finally {
@@ -290,9 +296,9 @@ export function WolfConfiguration() {
                         <span className="text-white font-medium">{symbol}</span>
                         {price > 0 && (
                           <div className="text-sm text-gray-400">
-                            ${price.toLocaleString()} 
+                            ${typeof price === 'number' ? price.toLocaleString() : '0'} 
                             <span className={`ml-1 ${change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+                              {change >= 0 ? '+' : ''}{typeof change === 'number' ? change.toFixed(2) : '0.00'}%
                             </span>
                           </div>
                         )}

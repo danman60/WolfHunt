@@ -148,7 +148,9 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
               
               <nav className="flex-1 px-2 py-4 space-y-1">
                 {navigation.map((item) => {
-                  const isActive = location.pathname === item.href;
+                  const isActive = location.pathname === item.href || 
+                                   (item.name === 'Wolf Configuration' && 
+                                    (location.pathname === '/trading' || location.pathname === '/strategy'));
                   return (
                     <Link
                       key={item.name}
@@ -161,7 +163,10 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                           : 'text-gray-400 hover:text-white hover:bg-gray-700'
                       )}
                     >
-                      <item.icon className="flex-shrink-0 w-5 h-5 mr-3" />
+                      <item.icon className={cn(
+                        'flex-shrink-0 w-5 h-5 mr-3',
+                        isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                      )} />
                       {item.name}
                     </Link>
                   );
