@@ -17,9 +17,8 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Intelligence Brief', href: '/intelligence', icon: BoltIcon },
-  { name: 'Trading', href: '/trading', icon: ChartBarIcon },
+  { name: 'Wolf Configuration', href: '/configuration', icon: CogIcon },
   { name: 'History', href: '/history', icon: ClockIcon },
-  { name: 'Strategy', href: '/strategy', icon: CogIcon },
   { name: 'Risk Management', href: '/risk', icon: ShieldCheckIcon },
   { name: 'Alerts', href: '/alerts', icon: ExclamationTriangleIcon },
 ];

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { PortfolioStats } from '../components/dashboard/PortfolioStats';
 import { TradingChart } from '../components/dashboard/TradingChart';
 import { PositionsTable } from '../components/dashboard/PositionsTable';
@@ -178,6 +179,7 @@ const botMetrics = {
 // const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export function Dashboard() {
+  const location = useLocation();
   const [selectedAsset, setSelectedAsset] = useState('BTC-USD');
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -247,10 +249,10 @@ export function Dashboard() {
     }
   };
 
-  // Initial data fetch
+  // Initial data fetch - also re-fetch when navigating back to dashboard
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [location.pathname]);
 
   // Real-time data updates
   useEffect(() => {
