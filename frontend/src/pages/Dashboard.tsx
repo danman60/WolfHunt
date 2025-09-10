@@ -215,30 +215,28 @@ export function Dashboard() {
     try {
       // setLoading(true);
       
-      // Check if API is connected
-      const connected = await apiService.checkConnection();
-      setApiConnected(connected);
-      
       // Always try to fetch GMX prices (fallback is built into the service)
       const prices = await apiService.getGMXPrices();
       setGmxPrices(prices);
       
-      if (connected) {
-        // Fetch real data from API
+      // Try to fetch dashboard data regardless of health check
+      try {
         const dashData = await apiService.getDashboardData();
-        
         setDashboardData(dashData);
-        // For now, keep using mock data for positions and trades until we align the types
-        setPositions(mockPositions);
-        setTrades(mockTrades);
-      } else {
-        // Use mock data when API is not available
+        setApiConnected(true);
+        console.log('Dashboard data loaded successfully');
+      } catch (dashError) {
+        console.warn('Dashboard API not available, using mock data:', dashError);
         setDashboardData(getMockDashboardData());
-        setPositions(mockPositions);
-        setTrades(mockTrades);
+        setApiConnected(false);
       }
+      
+      // For now, keep using mock data for positions and trades until we align the types
+      setPositions(mockPositions);
+      setTrades(mockTrades);
+      
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching data:', error);
       // Fallback to mock data on error
       setDashboardData(getMockDashboardData());
       setPositions(mockPositions);

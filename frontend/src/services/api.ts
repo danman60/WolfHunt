@@ -133,20 +133,26 @@ class ApiService {
           throw new Error('Authentication required');
         }
         
-        let errorData = {};
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
           const responseText = await response.text();
           if (responseText) {
-            errorData = JSON.parse(responseText);
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.detail || errorMessage;
           }
         } catch (parseError) {
-          // If parsing fails, use default empty object
+          // If parsing fails, use default error message
         }
         
-        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(errorMessage);
       }
 
-      return response.json();
+      // Only call .json() if response was ok
+      const responseText = await response.text();
+      if (!responseText) {
+        return {};
+      }
+      return JSON.parse(responseText);
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
       throw error;
@@ -289,17 +295,21 @@ class ApiService {
 
   // GMX Price Feeds
   async getGMXPrices(): Promise<{[symbol: string]: {price: number, change24h: number}}> {
-    try {
-      return this.request<{[symbol: string]: {price: number, change24h: number}}>('/api/trading/gmx/prices');
-    } catch (error) {
-      console.warn('GMX prices not available, using fallback');
-      // Fallback to basic price data if backend is unavailable
-      return {
-        'BTC-USD': { price: 45750, change24h: 1.67 },
-        'ETH-USD': { price: 2895, change24h: 1.58 },
-        'LINK-USD': { price: 15.75, change24h: 3.61 }
-      };
-    }
+    // For now, use fallback prices until GMX endpoint is implemented on backend
+    console.log('Using fallback GMX prices (backend endpoint not implemented yet)');
+    return {
+      'BTC-USD': { price: 45750, change24h: 1.67 },
+      'ETH-USD': { price: 2895, change24h: 1.58 },
+      'LINK-USD': { price: 15.75, change24h: 3.61 }
+    };
+    
+    // TODO: Uncomment when backend implements /api/trading/gmx/prices
+    // try {
+    //   return this.request<{[symbol: string]: {price: number, change24h: number}}>('/api/trading/gmx/prices');
+    // } catch (error) {
+    //   console.warn('GMX prices not available, using fallback');
+    //   return fallbackPrices;
+    // }
   }
 
   // Wolf Pack Intelligence API Methods
