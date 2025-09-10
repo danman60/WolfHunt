@@ -43,7 +43,7 @@ export function TradesTable({ trades, showAll = false, onShowAll }: TradesTableP
                 'ml-1 font-medium',
                 totalPnl >= 0 ? 'text-green-400' : 'text-red-400'
               )}>
-                ${totalPnl.toFixed(2)}
+                ${(totalPnl || 0).toFixed(2)}
               </span>
             </div>
             <div className="text-sm text-gray-400">
@@ -148,10 +148,10 @@ function TradeRow({ trade }: { trade: Trade }) {
       
       <td className="px-6 py-4">
         <div className="text-sm text-white font-medium">
-          {trade.size.toFixed(4)}
+          {(trade.size || 0).toFixed(4)}
         </div>
         <div className="text-xs text-gray-400">
-          Filled: {trade.filledSize.toFixed(4)}
+          Filled: {(trade.filledSize || 0).toFixed(4)}
         </div>
       </td>
       
@@ -166,14 +166,14 @@ function TradeRow({ trade }: { trade: Trade }) {
           ${(trade.notionalValue || 0).toLocaleString()}
         </div>
         <div className="text-xs text-gray-400">
-          Fee: ${trade.commission.toFixed(2)}
+          Fee: ${(trade.commission || 0).toFixed(2)}
         </div>
       </td>
       
       <td className="px-6 py-4">
         {trade.realizedPnl !== undefined ? (
           <div className={cn('text-sm font-medium', pnlColor)}>
-            {trade.realizedPnl > 0 ? '+' : ''}${trade.realizedPnl.toFixed(2)}
+            {(trade.realizedPnl || 0) > 0 ? '+' : ''}${(trade.realizedPnl || 0).toFixed(2)}
           </div>
         ) : (
           <span className="text-gray-500 text-sm">-</span>

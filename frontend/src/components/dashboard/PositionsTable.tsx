@@ -117,7 +117,7 @@ function PositionRow({ position, onClose }: { position: Position; onClose: () =>
       
       <td className="px-6 py-4">
         <div className="text-sm text-white font-medium">
-          {position.size.toFixed(4)}
+          {(position.size || 0).toFixed(4)}
         </div>
         <div className="text-xs text-gray-400">
           ${((position.size || 0) * (position.markPrice || 0)).toLocaleString()}
@@ -135,23 +135,23 @@ function PositionRow({ position, onClose }: { position: Position; onClose: () =>
           ${(position.markPrice || 0).toLocaleString()}
         </div>
         <div className="text-xs text-gray-400">
-          {((position.markPrice - position.entryPrice) / position.entryPrice * 100).toFixed(2)}%
+          {(((position.markPrice || 0) - (position.entryPrice || 0)) / (position.entryPrice || 1) * 100).toFixed(2)}%
         </div>
       </td>
       
       <td className="px-6 py-4">
         <div className={cn('text-sm font-medium', pnlColor)}>
-          ${position.unrealizedPnl.toFixed(2)}
+          ${(position.unrealizedPnl || 0).toFixed(2)}
         </div>
         <div className={cn('text-xs', pnlColor)}>
-          ({position.unrealizedPnlPercent >= 0 ? '+' : ''}{position.unrealizedPnlPercent.toFixed(2)}%)
+          ({(position.unrealizedPnlPercent || 0) >= 0 ? '+' : ''}{(position.unrealizedPnlPercent || 0).toFixed(2)}%)
         </div>
       </td>
       
       <td className="px-6 py-4">
         <div className="flex items-center">
           <span className="text-sm text-white font-medium">
-            {position.leverage.toFixed(1)}x
+            {(position.leverage || 0).toFixed(1)}x
           </span>
           <div className="ml-2 w-8 h-1.5 bg-gray-700 rounded-full overflow-hidden">
             <div 
@@ -165,7 +165,7 @@ function PositionRow({ position, onClose }: { position: Position; onClose: () =>
           </div>
         </div>
         <div className="text-xs text-gray-400">
-          Margin: ${position.margin.toFixed(2)}
+          Margin: ${(position.margin || 0).toFixed(2)}
         </div>
       </td>
       
