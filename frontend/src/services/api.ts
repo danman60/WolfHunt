@@ -293,23 +293,83 @@ class ApiService {
     }
   }
 
-  // GMX Price Feeds
+  // GMX Price Feeds - Direct API Integration with CoinGecko backup
   async getGMXPrices(): Promise<{[symbol: string]: {price: number, change24h: number}}> {
-    // For now, use fallback prices until GMX endpoint is implemented on backend
-    console.log('Using fallback GMX prices (backend endpoint not implemented yet)');
-    return {
-      'BTC-USD': { price: 45750, change24h: 1.67 },
-      'ETH-USD': { price: 2895, change24h: 1.58 },
-      'LINK-USD': { price: 15.75, change24h: 3.61 }
-    };
-    
-    // TODO: Uncomment when backend implements /api/trading/gmx/prices
-    // try {
-    //   return this.request<{[symbol: string]: {price: number, change24h: number}}>('/api/trading/gmx/prices');
-    // } catch (error) {
-    //   console.warn('GMX prices not available, using fallback');
-    //   return fallbackPrices;
-    // }
+    try {
+      console.log('Fetching real prices from CoinGecko API...');
+      
+      // Use CoinGecko for reliable price and 24h change data
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,chainlink&vs_currencies=usd&include_24hr_change=true'
+      );
+      
+      if (!response.ok) {
+        throw new Error(`CoinGecko API responded with ${response.status}`);
+      }
+      
+      const coinGeckoData = await response.json();
+      
+      const prices = {
+        'BTC-USD': {
+          price: coinGeckoData.bitcoin?.usd || 95000,
+          change24h: coinGeckoData.bitcoin?.usd_24h_change || 0
+        },
+        'ETH-USD': {
+          price: coinGeckoData.ethereum?.usd || 4200,
+          change24h: coinGeckoData.ethereum?.usd_24h_change || 0
+        },
+        'LINK-USD': {
+          price: coinGeckoData.chainlink?.usd || 23.50,
+          change24h: coinGeckoData.chainlink?.usd_24h_change || 0
+        }
+      };
+      
+      console.log('Real CoinGecko prices loaded:', prices);
+      return prices;
+      
+    } catch (error) {
+      console.warn('CoinGecko API failed, trying GMX API:', error);
+      
+      // Fallback to GMX API
+      try {
+        const response = await fetch('https://arbitrum-api.gmxinfra.io/prices/tickers');
+        if (!response.ok) {
+          throw new Error(`GMX API responded with ${response.status}`);
+        }
+        
+        const gmxData = await response.json();
+        
+        // GMX token addresses mapping
+        const tokenMapping: {[address: string]: string} = {
+          '0x47904963fc8b2340414262125aF798B9655E58Cd': 'BTC-USD',
+          '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1': 'ETH-USD',
+          '0xf97f4df75117a78c1A5a0DBb814Af92458539FB4': 'LINK-USD'
+        };
+        
+        const prices: {[symbol: string]: {price: number, change24h: number}} = {};
+        
+        for (const ticker of gmxData) {
+          const symbol = tokenMapping[ticker.tokenAddress];
+          if (symbol && ticker.minPrice) {
+            // Convert GMX price format (30 decimals)
+            const price = parseFloat(ticker.minPrice) / Math.pow(10, 30);
+            prices[symbol] = { price: price, change24h: 0 };
+          }
+        }
+        
+        console.log('GMX API prices loaded as fallback:', prices);
+        return prices;
+        
+      } catch (gmxError) {
+        console.warn('Both APIs failed, using static fallback:', gmxError);
+        // Final fallback to static prices
+        return {
+          'BTC-USD': { price: 95000, change24h: 1.67 },
+          'ETH-USD': { price: 4200, change24h: 1.58 },
+          'LINK-USD': { price: 23.50, change24h: 3.61 }
+        };
+      }
+    }
   }
 
   // Wolf Pack Intelligence API Methods
