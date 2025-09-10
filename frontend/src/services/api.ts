@@ -309,15 +309,15 @@ class ApiService {
       console.log('Fetching real prices from CoinGecko API...');
       
       // Use CoinGecko for reliable price and 24h change data
-      const response = await fetch(
+      const coinGeckoResponse = await fetch(
         'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,chainlink&vs_currencies=usd&include_24hr_change=true'
       );
       
-      if (!response.ok) {
-        throw new Error(`CoinGecko API responded with ${response.status}`);
+      if (!coinGeckoResponse.ok) {
+        throw new Error(`CoinGecko API responded with ${coinGeckoResponse.status}`);
       }
       
-      const coinGeckoData = await response.json();
+      const coinGeckoData = await coinGeckoResponse.json();
       
       const prices = {
         'BTC-USD': {
@@ -342,12 +342,12 @@ class ApiService {
       
       // Fallback to GMX API
       try {
-        const response = await fetch('https://arbitrum-api.gmxinfra.io/prices/tickers');
-        if (!response.ok) {
-          throw new Error(`GMX API responded with ${response.status}`);
+        const gmxResponse = await fetch('https://arbitrum-api.gmxinfra.io/prices/tickers');
+        if (!gmxResponse.ok) {
+          throw new Error(`GMX API responded with ${gmxResponse.status}`);
         }
         
-        const gmxData = await response.json();
+        const gmxData = await gmxResponse.json();
         
         // GMX token addresses mapping
         const tokenMapping: {[address: string]: string} = {
@@ -399,7 +399,7 @@ class ApiService {
     });
   }
 
-  async getPerformanceMetrics(): Promise<any> {
+  async getPerformanceMetricsV1(): Promise<any> {
     return this.request('/api/v1/performance-metrics');
   }
 

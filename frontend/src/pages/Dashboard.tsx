@@ -272,14 +272,17 @@ export function Dashboard() {
   useEffect(() => {
     if (!apiConnected) return;
     
-    const dataInterval = setInterval(() => {
-      // Only update dashboard data, not prices
-      apiService.getDashboardData()
-        .then(setDashboardData)
-        .catch(error => {
-          console.warn('Dashboard data update failed:', error);
+    const dataInterval = setInterval(async () => {
+      try {
+        const data = await apiService.getDashboardData();
+        setDashboardData(data);
+      } catch (error) {
+        console.warn('Dashboard data update failed:', error);
+        // Only disconnect if it's a real connectivity issue, not a parse error
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
           setApiConnected(false);
-        });
+        }
+      }
     }, 30000); // Update dashboard data every 30 seconds
 
     return () => clearInterval(dataInterval);
