@@ -1,4 +1,4 @@
-// API service for connecting to the dYdX trading bot backend
+// API service for connecting to the GMX trading bot backend
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? '/.netlify/functions' // Use Netlify Functions in production (direct path to working function)
   : 'http://localhost:8000'; // Local development - connect to local backend
@@ -133,7 +133,16 @@ class ApiService {
           throw new Error('Authentication required');
         }
         
-        const errorData = await response.json().catch(() => ({}));
+        let errorData = {};
+        try {
+          const responseText = await response.text();
+          if (responseText) {
+            errorData = JSON.parse(responseText);
+          }
+        } catch (parseError) {
+          // If parsing fails, use default empty object
+        }
+        
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -275,6 +284,21 @@ class ApiService {
     } catch (error) {
       console.warn('Backend API not available:', error);
       return false;
+    }
+  }
+
+  // GMX Price Feeds
+  async getGMXPrices(): Promise<{[symbol: string]: {price: number, change24h: number}}> {
+    try {
+      return this.request<{[symbol: string]: {price: number, change24h: number}}>('/api/trading/gmx/prices');
+    } catch (error) {
+      console.warn('GMX prices not available, using fallback');
+      // Fallback to basic price data if backend is unavailable
+      return {
+        'BTC-USD': { price: 45750, change24h: 1.67 },
+        'ETH-USD': { price: 2895, change24h: 1.58 },
+        'LINK-USD': { price: 15.75, change24h: 3.61 }
+      };
     }
   }
 

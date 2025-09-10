@@ -100,6 +100,8 @@ export const WolfPackDashboard: React.FC = () => {
       setLiveSignals(data);
     } catch (err) {
       console.warn('Live signals fetch failed:', err);
+      // Set empty data to prevent repeated failures
+      setLiveSignals([]);
     }
   };
 
@@ -137,10 +139,10 @@ export const WolfPackDashboard: React.FC = () => {
 
     fetchInitialData();
 
-    // Refresh intelligence every 30 seconds
-    const intelligenceInterval = setInterval(fetchIntelligence, 30000);
-    // Refresh live signals every 5 seconds
-    const signalsInterval = setInterval(fetchLiveSignals, 5000);
+    // Refresh intelligence every 60 seconds (reduced from 30s)
+    const intelligenceInterval = setInterval(fetchIntelligence, 60000);
+    // Refresh live signals every 15 seconds (reduced from 5s to reduce API load)
+    const signalsInterval = setInterval(fetchLiveSignals, 15000);
 
     return () => {
       clearInterval(intelligenceInterval);

@@ -69,8 +69,8 @@ export function Trading() {
       {/* Trading Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Manual Trading</h1>
-          <p className="text-gray-400">Execute trades on dYdX perpetuals</p>
+          <h1 className="text-2xl font-bold text-white">Trading Bot Configuration</h1>
+          <p className="text-gray-400">Configure and monitor your GMX trading bot</p>
         </div>
         <div className="flex items-center space-x-2">
           <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">

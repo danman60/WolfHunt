@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis } from 'recharts';
+import { apiService } from '../services/api';
 
 interface RiskSettings {
   maxDailyLoss: number;
@@ -67,18 +68,40 @@ export function RiskManagement() {
     }));
   };
 
-  const handleEmergencyStop = () => {
+  const handleEmergencyStop = async () => {
     setEmergencyMode(true);
     console.log('Emergency stop activated - closing all positions');
-    // In real app, this would trigger emergency stop API call
-    setTimeout(() => {
-      setEmergencyMode(false);
-    }, 5000);
+    
+    try {
+      const result = await apiService.emergencyStop('User initiated emergency stop', true);
+      console.log('Emergency stop result:', result);
+    } catch (error) {
+      console.error('Emergency stop failed:', error);
+    } finally {
+      // Re-enable button after 5 seconds
+      setTimeout(() => {
+        setEmergencyMode(false);
+      }, 5000);
+    }
   };
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = async () => {
     console.log('Saving risk settings:', riskSettings);
-    // In real app, this would save to your API
+    
+    try {
+      // Convert risk settings to strategy config format
+      const strategyConfig = {
+        max_leverage: riskSettings.maxLeverage,
+        stop_loss_pct: riskSettings.stopLossPercentage / 100,
+        daily_loss_limit: riskSettings.maxDailyLoss,
+        max_position_size_pct: riskSettings.maxPositionSize / 100,
+      };
+      
+      const result = await apiService.updateStrategyConfig(strategyConfig);
+      console.log('Settings saved:', result);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
 
   const getStatusColor = (status: string) => {

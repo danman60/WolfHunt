@@ -182,6 +182,7 @@ export function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [gmxPrices, setGmxPrices] = useState<{[symbol: string]: {price: number, change24h: number}}>({});
   // const [loading, setLoading] = useState(true);
   const [apiConnected, setApiConnected] = useState(false);
   const [draggedPanel, setDraggedPanel] = useState<string | null>(null);
@@ -217,6 +218,10 @@ export function Dashboard() {
       // Check if API is connected
       const connected = await apiService.checkConnection();
       setApiConnected(connected);
+      
+      // Always try to fetch GMX prices (fallback is built into the service)
+      const prices = await apiService.getGMXPrices();
+      setGmxPrices(prices);
       
       if (connected) {
         // Fetch real data from API
@@ -351,9 +356,9 @@ export function Dashboard() {
           <TradingChart
             symbol={selectedAsset}
             data={mockChartData[selectedAsset as keyof typeof mockChartData] || mockChartData['BTC-USD']}
-            currentPrice={selectedAsset === 'BTC-USD' ? 45750 : selectedAsset === 'ETH-USD' ? 2895 : 15.75}
-            priceChange={selectedAsset === 'BTC-USD' ? 750 : selectedAsset === 'ETH-USD' ? 45 : 0.55}
-            priceChangePercent={selectedAsset === 'BTC-USD' ? 1.67 : selectedAsset === 'ETH-USD' ? 1.58 : 3.61}
+            currentPrice={gmxPrices[selectedAsset]?.price || (selectedAsset === 'BTC-USD' ? 45750 : selectedAsset === 'ETH-USD' ? 2895 : 15.75)}
+            priceChange={gmxPrices[selectedAsset]?.change24h || (selectedAsset === 'BTC-USD' ? 1.67 : selectedAsset === 'ETH-USD' ? 1.58 : 3.61)}
+            priceChangePercent={gmxPrices[selectedAsset]?.change24h || (selectedAsset === 'BTC-USD' ? 1.67 : selectedAsset === 'ETH-USD' ? 1.58 : 3.61)}
           />
         </div>
 
@@ -373,9 +378,10 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               {['BTC-USD', 'ETH-USD', 'LINK-USD'].map((symbol) => {
-                const price = symbol === 'BTC-USD' ? 45750 : symbol === 'ETH-USD' ? 2895 : 15.75;
-                const change = symbol === 'BTC-USD' ? 1.67 : symbol === 'ETH-USD' ? 1.58 : 3.61;
-                const changeAbs = symbol === 'BTC-USD' ? 750 : symbol === 'ETH-USD' ? 45 : 0.55;
+                const priceData = gmxPrices[symbol];
+                const price = priceData?.price || (symbol === 'BTC-USD' ? 45750 : symbol === 'ETH-USD' ? 2895 : 15.75);
+                const change = priceData?.change24h || (symbol === 'BTC-USD' ? 1.67 : symbol === 'ETH-USD' ? 1.58 : 3.61);
+                const changeAbs = Math.abs(change * price / 100); // Calculate absolute change from percentage
                 return (
                   <div 
                     key={symbol}
@@ -394,8 +400,8 @@ export function Dashboard() {
                         </div>
                       </div>
                       <div className={`text-right ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        <div className="text-sm font-medium">+{changeAbs}</div>
-                        <div className="text-sm">+{change}%</div>
+                        <div className="text-sm font-medium">{change > 0 ? '+' : ''}{changeAbs.toFixed(2)}</div>
+                        <div className="text-sm">{change > 0 ? '+' : ''}{change.toFixed(2)}%</div>
                       </div>
                     </div>
                   </div>
