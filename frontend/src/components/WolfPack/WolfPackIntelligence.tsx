@@ -99,8 +99,7 @@ export const WolfPackDashboard: React.FC = () => {
       const data = await apiService.getLiveSignals();
       setLiveSignals(data);
     } catch (err) {
-      console.warn('Live signals fetch failed:', err);
-      // Set empty data to prevent repeated failures
+      console.warn('Live signals API not available - using empty data');
       setLiveSignals([]);
     }
   };
