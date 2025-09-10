@@ -47,7 +47,7 @@ export function TradesTable({ trades, showAll = false, onShowAll }: TradesTableP
               </span>
             </div>
             <div className="text-sm text-gray-400">
-              Volume: ${totalVolume.toLocaleString()}
+              Volume: ${(totalVolume || 0).toLocaleString()}
             </div>
             {!showAll && trades.length > 10 && onShowAll && (
               <button
@@ -157,13 +157,13 @@ function TradeRow({ trade }: { trade: Trade }) {
       
       <td className="px-6 py-4">
         <div className="text-sm text-white font-medium">
-          ${trade.price.toLocaleString()}
+          ${(trade.price || 0).toLocaleString()}
         </div>
       </td>
       
       <td className="px-6 py-4">
         <div className="text-sm text-white font-medium">
-          ${trade.notionalValue.toLocaleString()}
+          ${(trade.notionalValue || 0).toLocaleString()}
         </div>
         <div className="text-xs text-gray-400">
           Fee: ${trade.commission.toFixed(2)}

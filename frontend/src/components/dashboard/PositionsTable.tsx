@@ -120,19 +120,19 @@ function PositionRow({ position, onClose }: { position: Position; onClose: () =>
           {position.size.toFixed(4)}
         </div>
         <div className="text-xs text-gray-400">
-          ${(position.size * position.markPrice).toLocaleString()}
+          ${((position.size || 0) * (position.markPrice || 0)).toLocaleString()}
         </div>
       </td>
       
       <td className="px-6 py-4">
         <div className="text-sm text-white font-medium">
-          ${position.entryPrice.toLocaleString()}
+          ${(position.entryPrice || 0).toLocaleString()}
         </div>
       </td>
       
       <td className="px-6 py-4">
         <div className="text-sm text-white font-medium">
-          ${position.markPrice.toLocaleString()}
+          ${(position.markPrice || 0).toLocaleString()}
         </div>
         <div className="text-xs text-gray-400">
           {((position.markPrice - position.entryPrice) / position.entryPrice * 100).toFixed(2)}%
