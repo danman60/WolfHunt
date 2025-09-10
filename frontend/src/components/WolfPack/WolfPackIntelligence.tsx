@@ -216,6 +216,21 @@ const PackStatusHeader: React.FC<{
   portfolioSignals: PortfolioSignals;
   marketContext: MarketContext;
 }> = ({ systemHealth, portfolioSignals, marketContext }) => {
+  // Get overall API health status
+  const getApiHealthStatus = () => {
+    const apiHealth = systemHealth.api_health || 'UNKNOWN';
+    const dataFreshness = systemHealth.data_freshness || 'UNKNOWN';
+    
+    if (apiHealth === 'OPERATIONAL' && dataFreshness === 'LIVE') {
+      return { color: 'bg-green-500', text: 'LIVE DATA', tooltip: 'All APIs operational with live data' };
+    } else if (apiHealth === 'OPERATIONAL') {
+      return { color: 'bg-yellow-500', text: 'MIXED DATA', tooltip: 'APIs operational, some fallback data' };
+    } else {
+      return { color: 'bg-red-500', text: 'API ISSUES', tooltip: 'API connectivity issues' };
+    }
+  };
+
+  const apiStatus = getApiHealthStatus();
   return (
     <Card className="bg-slate-800 border-slate-700">
       <CardHeader>
@@ -260,6 +275,13 @@ const PackStatusHeader: React.FC<{
         </div>
         
         <div className="flex items-center gap-4 flex-wrap">
+          {/* Prominent API Data Quality Indicator */}
+          <div className={`px-3 py-1 rounded-full text-xs font-bold text-white ${apiStatus.color} flex items-center gap-2`} 
+               title={apiStatus.tooltip}>
+            <div className={`w-2 h-2 rounded-full ${apiStatus.color === 'bg-green-500' ? 'animate-pulse bg-white' : 'bg-gray-300'}`} />
+            📊 {apiStatus.text}
+          </div>
+          
           <div className={`px-3 py-1 rounded-full text-xs font-medium ${
             systemHealth.quant_status === 'ACTIVE' ? 'bg-green-600' : 'bg-red-600'
           }`}>
@@ -318,6 +340,23 @@ const CryptoIntelligenceCard: React.FC<{
   };
 
   const displayPrice = liveData?.price || intelligence.price || 0;
+  const dataQuality = intelligence.data_quality || 'UNKNOWN';
+
+  // Determine data quality color and icon
+  const getDataQualityIndicator = (quality: string) => {
+    switch (quality) {
+      case 'LIVE_DATA':
+        return { color: 'bg-green-500', icon: '🔴', text: 'LIVE', tooltip: 'Real-time market data' };
+      case 'LIVE_PRICE_FALLBACK_INDICATORS':
+        return { color: 'bg-yellow-500', icon: '🟡', text: 'LIVE PRICE', tooltip: 'Live prices, fallback indicators' };
+      case 'FALLBACK_DATA':
+        return { color: 'bg-red-500', icon: '🔴', text: 'FALLBACK', tooltip: 'Using cached/fallback data' };
+      default:
+        return { color: 'bg-gray-500', icon: '❓', text: 'UNKNOWN', tooltip: 'Data quality unknown' };
+    }
+  };
+
+  const qualityIndicator = getDataQualityIndicator(dataQuality);
 
   return (
     <Card className="bg-slate-800 border-slate-700 hover:border-slate-600 transition-colors">
@@ -329,9 +368,13 @@ const CryptoIntelligenceCard: React.FC<{
             <span className="text-sm text-gray-400">
               ${displayPrice.toFixed(2)}
             </span>
-            {liveData && (
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" title="Live data" />
-            )}
+            
+            {/* Enhanced Data Quality Indicator */}
+            <div className={`px-2 py-1 rounded-full text-xs font-bold text-white ${qualityIndicator.color} flex items-center gap-1`} 
+                 title={qualityIndicator.tooltip}>
+              <div className={`w-2 h-2 rounded-full ${dataQuality === 'LIVE_DATA' || dataQuality === 'LIVE_PRICE_FALLBACK_INDICATORS' ? 'animate-pulse bg-white' : 'bg-gray-300'}`} />
+              {qualityIndicator.text}
+            </div>
           </div>
         </div>
       </CardHeader>
