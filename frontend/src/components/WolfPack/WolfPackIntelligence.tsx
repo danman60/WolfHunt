@@ -132,7 +132,7 @@ export const WolfPackDashboard: React.FC = () => {
     const fetchInitialData = async () => {
       setLoading(true);
       await fetchIntelligence();
-      await fetchLiveSignals();
+      // await fetchLiveSignals(); // API not implemented
       setLoading(false);
     };
 
@@ -141,11 +141,12 @@ export const WolfPackDashboard: React.FC = () => {
     // Refresh intelligence every 60 seconds (reduced from 30s)
     const intelligenceInterval = setInterval(fetchIntelligence, 60000);
     // Refresh live signals every 15 seconds (reduced from 5s to reduce API load)
-    const signalsInterval = setInterval(fetchLiveSignals, 15000);
+    // Disable live signals polling since API is not implemented
+    // const signalsInterval = setInterval(fetchLiveSignals, 15000);
 
     return () => {
       clearInterval(intelligenceInterval);
-      clearInterval(signalsInterval);
+      // clearInterval(signalsInterval);
     };
   }, []);
 
