@@ -11,13 +11,15 @@ interface PriceContextType {
   lastUpdate: Date | null;
   isLoading: boolean;
   error: string | null;
+  isStale: boolean;
 }
 
 const PriceContext = createContext<PriceContextType>({
   prices: {},
   lastUpdate: null,
   isLoading: false,
-  error: null
+  error: null,
+  isStale: false
 });
 
 interface PriceProviderProps {
@@ -29,6 +31,7 @@ export function PriceProvider({ children }: PriceProviderProps) {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isStale, setIsStale] = useState(false);
 
   const fetchPrices = async () => {
     try {
@@ -40,23 +43,33 @@ export function PriceProvider({ children }: PriceProviderProps) {
       if (newPrices && typeof newPrices === 'object') {
         setPrices(newPrices);
         setLastUpdate(new Date());
+        setIsStale(false);
         console.log('Real CoinGecko prices loaded:', newPrices);
       } else {
         throw new Error('Invalid price data received');
       }
     } catch (fetchError) {
-      console.warn('Failed to fetch prices, using fallback:', fetchError);
+      console.warn('Failed to fetch prices, keeping previous prices if available:', fetchError);
       setError(fetchError instanceof Error ? fetchError.message : 'Price fetch failed');
       
-      // Use fallback prices on error
-      const fallbackPrices = {
-        'BTC-USD': { price: 95000, change24h: 1.67 },
-        'ETH-USD': { price: 4200, change24h: 1.58 },
-        'LINK-USD': { price: 23.50, change24h: 3.61 }
-      };
-      
-      setPrices(fallbackPrices);
-      setLastUpdate(new Date());
+      // Only set fallback prices if we have NO prices currently (first load failure)
+      // Otherwise, preserve the last known good prices
+      if (Object.keys(prices).length === 0) {
+        console.log('No previous prices available, using fallback prices');
+        const fallbackPrices = {
+          'BTC-USD': { price: 95000, change24h: 1.67 },
+          'ETH-USD': { price: 4200, change24h: 1.58 },
+          'LINK-USD': { price: 23.50, change24h: 3.61 }
+        };
+        
+        setPrices(fallbackPrices);
+        setLastUpdate(new Date());
+        setIsStale(false);
+      } else {
+        console.log(`Preserving ${Object.keys(prices).length} previous prices - API temporarily unavailable`);
+        // Keep existing prices, don't update lastUpdate time to show data is stale
+        setIsStale(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +92,8 @@ export function PriceProvider({ children }: PriceProviderProps) {
     prices,
     lastUpdate,
     isLoading,
-    error
+    error,
+    isStale
   };
 
   return (

@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { apiService } from '../../services/api';
+import { usePrices } from '../../contexts/PriceContext';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -14,7 +15,8 @@ import {
   DollarSign,
   Zap,
   Brain,
-  Eye
+  Eye,
+  Clock
 } from 'lucide-react';
 
 // 🎯 Type definitions for our intelligence data
@@ -82,6 +84,7 @@ export const WolfPackDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<StrategyAdjustment | null>(null);
+  const { prices, isStale, lastUpdate } = usePrices();
 
   // 📡 Fetch Wolf Pack intelligence data
   const fetchIntelligence = async () => {
@@ -183,6 +186,20 @@ export const WolfPackDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 text-white">
+      {/* 📊 PRICE STALENESS INDICATOR */}
+      {isStale && (
+        <div className="bg-yellow-900/30 border border-yellow-500 rounded-lg p-3 flex items-center gap-3">
+          <Clock className="h-5 w-5 text-yellow-400" />
+          <div className="flex-1">
+            <div className="text-yellow-200 font-medium">Price Data May Be Stale</div>
+            <div className="text-yellow-300 text-sm">
+              Last update: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Unknown'} - 
+              Live price feeds temporarily unavailable, showing last known prices
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 🎯 PACK STATUS HEADER */}
       <PackStatusHeader 
         systemHealth={intelligence.system_health}
@@ -328,6 +345,7 @@ const CryptoIntelligenceCard: React.FC<{
   intelligence: CryptoIntelligence;
   liveData?: any;
 }> = ({ crypto, intelligence, liveData }) => {
+  const { prices, isStale } = usePrices();
   const getSignalColor = (score: number) => {
     if (score > 70) return 'text-green-400';
     if (score > 30) return 'text-yellow-400';
@@ -350,8 +368,11 @@ const CryptoIntelligenceCard: React.FC<{
     }
   };
 
-  const displayPrice = liveData?.price || intelligence.price || 0;
-  const dataQuality = intelligence.data_quality || 'UNKNOWN';
+  // Use live prices from context if available, fallback to intelligence data
+  const cryptoKey = `${crypto}-USD`;
+  const livePrice = prices[cryptoKey]?.price;
+  const displayPrice = livePrice || liveData?.price || intelligence.price || 0;
+  const dataQuality = isStale ? 'STALE_DATA' : (intelligence.data_quality || 'UNKNOWN');
 
   // Determine data quality color and icon
   const getDataQualityIndicator = (quality: string) => {
@@ -360,6 +381,8 @@ const CryptoIntelligenceCard: React.FC<{
         return { color: 'bg-green-500', icon: '🔴', text: 'LIVE', tooltip: 'Real-time market data' };
       case 'LIVE_PRICE_FALLBACK_INDICATORS':
         return { color: 'bg-yellow-500', icon: '🟡', text: 'LIVE PRICE', tooltip: 'Live prices, fallback indicators' };
+      case 'STALE_DATA':
+        return { color: 'bg-orange-500', icon: '🕒', text: 'STALE', tooltip: 'Using last known prices - API unavailable' };
       case 'FALLBACK_DATA':
         return { color: 'bg-red-500', icon: '🔴', text: 'FALLBACK', tooltip: 'Using cached/fallback data' };
       default:
