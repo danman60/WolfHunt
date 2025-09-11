@@ -9,6 +9,7 @@ import type { Trade } from '../components/dashboard/TradesTable';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { apiService, getMockDashboardData, type DashboardData } from '../services/api';
+import { usePrices } from '../contexts/PriceContext';
 import { WolfPackDashboard, LiveAlertBanner } from '../components/WolfPack/WolfPackIntelligence';
 
 // Generate portfolio stats from dashboard data
@@ -184,7 +185,8 @@ export function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [gmxPrices, setGmxPrices] = useState<{[symbol: string]: {price: number, change24h: number}}>({});
+  // Use global price context instead of local state
+  const { prices: gmxPrices } = usePrices();
   // const [loading, setLoading] = useState(true);
   const [apiConnected, setApiConnected] = useState(false);
   const [draggedPanel, setDraggedPanel] = useState<string | null>(null);
@@ -254,30 +256,7 @@ export function Dashboard() {
     fetchDashboardData();
   }, [location.pathname]);
 
-  // Price feeds update interval - separate from dashboard data
-  useEffect(() => {
-    // Initial price fetch
-    const fetchInitialPrices = async () => {
-      try {
-        const prices = await apiService.getGMXPrices();
-        setGmxPrices(prices);
-      } catch (error) {
-        console.warn('Initial price fetch failed:', error);
-      }
-    };
-    fetchInitialPrices();
-
-    const priceInterval = setInterval(async () => {
-      try {
-        const prices = await apiService.getGMXPrices();
-        setGmxPrices(prices);
-      } catch (error) {
-        console.warn('Price update failed:', error);
-      }
-    }, 30000); // Update prices every 30 seconds (less aggressive)
-
-    return () => clearInterval(priceInterval);
-  }, []); // No dependencies - always run
+  // Price feeds now managed globally by PriceContext - no local interval needed
 
   // Dashboard data updates (less frequent)
   useEffect(() => {

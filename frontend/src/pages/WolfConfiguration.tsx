@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { PositionsTable } from '../components/dashboard/PositionsTable';
 import type { Position } from '../components/dashboard/PositionsTable';
 import { apiService, getMockPositions } from '../services/api';
+import { usePrices } from '../contexts/PriceContext';
 
 interface StrategyConfig {
   strategy_name: string;
@@ -50,32 +51,16 @@ export function WolfConfiguration() {
   });
 
   const [positions, setPositions] = useState<Position[]>([]);
-  const [gmxPrices, setGmxPrices] = useState<{[symbol: string]: {price: number, change24h: number}}>({});
+  // Use global price context instead of local state
+  const { prices: gmxPrices } = usePrices();
   const [botRunning, setBotRunning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiConnected, setApiConnected] = useState(false);
 
-  // Fetch current positions and prices
+  // Fetch current positions and strategy config (prices handled by global context)
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      // Get real prices with fallback
-      try {
-        const prices = await apiService.getGMXPrices();
-        if (prices && typeof prices === 'object') {
-          setGmxPrices(prices);
-        } else {
-          throw new Error('Invalid price data received');
-        }
-      } catch (priceError) {
-        console.warn('Failed to fetch prices, using fallback:', priceError);
-        setGmxPrices({
-          'BTC-USD': { price: 95000, change24h: 1.67 },
-          'ETH-USD': { price: 4200, change24h: 1.58 },
-          'LINK-USD': { price: 23.50, change24h: 3.61 }
-        });
-      }
       
       // Try to get strategy config
       try {
@@ -106,12 +91,7 @@ export function WolfConfiguration() {
     } catch (error) {
       console.error('Error fetching configuration data:', error);
       setApiConnected(false);
-      // Set safe fallback data
-      setGmxPrices({
-        'BTC-USD': { price: 95000, change24h: 1.67 },
-        'ETH-USD': { price: 4200, change24h: 1.58 },
-        'LINK-USD': { price: 23.50, change24h: 3.61 }
-      });
+      // Set safe fallback data (prices handled by global context)
       setPositions([]);
     } finally {
       setLoading(false);
@@ -120,20 +100,7 @@ export function WolfConfiguration() {
 
   useEffect(() => {
     fetchData();
-    // Refresh prices every 30 seconds with error handling
-    const interval = setInterval(async () => {
-      try {
-        const prices = await apiService.getGMXPrices();
-        if (prices && typeof prices === 'object') {
-          setGmxPrices(prices);
-        }
-      } catch (error) {
-        console.warn('Failed to refresh prices:', error);
-        // Don't update state on error to keep existing data
-      }
-    }, 30000);
-    
-    return () => clearInterval(interval);
+    // Price updates now handled by global PriceContext
   }, []);
 
   const handleStopBot = async () => {
