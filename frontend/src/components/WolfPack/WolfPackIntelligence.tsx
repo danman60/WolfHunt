@@ -655,15 +655,15 @@ const PortfolioMetricsPanel: React.FC = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Technical Signals</span>
-                <span className="font-semibold">{metrics.signal_accuracy.technical_signals.toFixed(1)}%</span>
+                <span className="font-semibold">{metrics?.signal_accuracy?.technical_signals?.toFixed(1) || '0.0'}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Sentiment Signals</span>
-                <span className="font-semibold">{metrics.signal_accuracy.sentiment_signals.toFixed(1)}%</span>
+                <span className="font-semibold">{metrics?.signal_accuracy?.sentiment_signals?.toFixed(1) || '0.0'}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Combined Signals</span>
-                <span className="font-semibold text-green-400">{metrics.signal_accuracy.combined_signals.toFixed(1)}%</span>
+                <span className="font-semibold text-green-400">{metrics?.signal_accuracy?.combined_signals?.toFixed(1) || '0.0'}%</span>
               </div>
             </div>
           </div>
@@ -674,19 +674,19 @@ const PortfolioMetricsPanel: React.FC = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">7D Return</span>
-                <span className="font-semibold text-green-400">+{metrics.portfolio_performance.total_return_7d.toFixed(1)}%</span>
+                <span className="font-semibold text-green-400">+{metrics?.portfolio_performance?.total_return_7d?.toFixed(1) || '0.0'}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">30D Return</span>
-                <span className="font-semibold text-green-400">+{metrics.portfolio_performance.total_return_30d.toFixed(1)}%</span>
+                <span className="font-semibold text-green-400">+{metrics?.portfolio_performance?.total_return_30d?.toFixed(1) || '0.0'}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Sharpe Ratio</span>
-                <span className="font-semibold">{metrics.portfolio_performance.sharpe_ratio.toFixed(2)}</span>
+                <span className="font-semibold">{metrics?.portfolio_performance?.sharpe_ratio?.toFixed(2) || '0.00'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Win Rate</span>
-                <span className="font-semibold">{metrics.portfolio_performance.win_rate.toFixed(1)}%</span>
+                <span className="font-semibold">{metrics?.portfolio_performance?.win_rate?.toFixed(1) || '0.0'}%</span>
               </div>
             </div>
           </div>
@@ -697,22 +697,24 @@ const PortfolioMetricsPanel: React.FC = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Uptime</span>
-                <span className="font-semibold">{metrics.system_efficiency.uptime.toFixed(1)}%</span>
+                <span className="font-semibold">{metrics?.system_efficiency?.uptime?.toFixed(1) || '0.0'}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Response Time</span>
-                <span className="font-semibold">{metrics.system_efficiency.avg_response_time}ms</span>
+                <span className="font-semibold">{metrics?.system_efficiency?.avg_response_time || '0'}ms</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Success Rate</span>
                 <span className="font-semibold text-green-400">
-                  {((metrics.system_efficiency.successful_updates / (metrics.system_efficiency.successful_updates + metrics.system_efficiency.failed_updates)) * 100).toFixed(1)}%
+                  {metrics?.system_efficiency?.successful_updates && metrics?.system_efficiency?.failed_updates 
+                    ? ((metrics.system_efficiency.successful_updates / (metrics.system_efficiency.successful_updates + metrics.system_efficiency.failed_updates)) * 100).toFixed(1)
+                    : '0.0'}%
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Wolf Pack Status</span>
-                <span className={`font-semibold ${metrics.system_efficiency.wolf_pack_status === 'HUNTING' ? 'text-green-400' : 'text-yellow-400'}`}>
-                  {metrics.system_efficiency.wolf_pack_status}
+                <span className={`font-semibold ${metrics?.system_efficiency?.wolf_pack_status === 'HUNTING' ? 'text-green-400' : 'text-yellow-400'}`}>
+                  {metrics?.system_efficiency?.wolf_pack_status || 'MONITORING'}
                 </span>
               </div>
             </div>
