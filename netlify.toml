@@ -18,11 +18,12 @@
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
-# API proxy using Netlify Functions (more reliable than redirects)
+# API proxy using Netlify Functions (more reliable than redirects) - MUST be first priority
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200
+  force = true
 
 # Redirect rules for SPA routing - catch-all MUST be last
 [[redirects]]
