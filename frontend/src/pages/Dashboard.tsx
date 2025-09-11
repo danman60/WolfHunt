@@ -218,10 +218,7 @@ export function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       // setLoading(true);
-      
-      // Always try to fetch GMX prices (fallback is built into the service)
-      const prices = await apiService.getGMXPrices();
-      setGmxPrices(prices);
+      // Price fetching now handled by global PriceContext
       
       // Try to fetch dashboard data regardless of health check
       try {

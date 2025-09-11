@@ -90,7 +90,16 @@ export const WolfPackDashboard: React.FC = () => {
       setIntelligence(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      // Handle 404s and body stream errors gracefully
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+        setError('Wolf Pack intelligence service not available');
+      } else if (errorMessage.includes('body stream already read')) {
+        setError('Wolf Pack intelligence temporarily unavailable');
+      } else {
+        setError(errorMessage);
+      }
+      console.warn('Wolf Pack intelligence fetch failed:', errorMessage);
     }
   };
 
@@ -138,8 +147,8 @@ export const WolfPackDashboard: React.FC = () => {
 
     fetchInitialData();
 
-    // Refresh intelligence every 60 seconds (reduced from 30s)
-    const intelligenceInterval = setInterval(fetchIntelligence, 60000);
+    // Reduce frequency to prevent API overload and body stream errors
+    const intelligenceInterval = setInterval(fetchIntelligence, 300000); // 5 minutes
     // Refresh live signals every 15 seconds (reduced from 5s to reduce API load)
     // Disable live signals polling since API is not implemented
     // const signalsInterval = setInterval(fetchLiveSignals, 15000);
