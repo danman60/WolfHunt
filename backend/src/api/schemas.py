@@ -360,11 +360,32 @@ class BacktestResult(BaseModel):
     avg_loss: float
     max_drawdown: float
     sharpe_ratio: float
-    sortino_ratio: float
-    calmar_ratio: float
-    trades: List[Dict[str, Any]]
-    equity_curve: List[Dict[str, Any]]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    profit_factor: float
+    backtest_duration_days: int
+
+
+class BacktestStatusResponse(BaseModel):
+    backtest_id: str
+    status: str
+    progress: float
+    message: str
+    start_time: datetime
+    error: Optional[str] = None
+
+
+class BacktestListItem(BaseModel):
+    backtest_id: str
+    strategy_name: str
+    status: str
+    progress: float
+    start_time: str
+
+
+class BacktestListResponse(BaseModel):
+    backtests: List[BacktestListItem]
+    total: int
+    limit: int
+    offset: int
 
 
 # Health Check Schemas

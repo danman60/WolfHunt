@@ -5,7 +5,8 @@ Centralized configuration with environment-specific settings, validation, and ty
 
 import os
 from typing import List, Optional
-from pydantic import BaseSettings, validator, Field
+from pydantic import validator, Field
+from pydantic_settings import BaseSettings
 from enum import Enum
 
 
@@ -369,3 +370,8 @@ def reload_config() -> TradingConfig:
     global config
     config = TradingConfig()
     return config
+
+
+def get_settings() -> TradingConfig:
+    """Get settings instance - alias for get_config()"""
+    return get_config()

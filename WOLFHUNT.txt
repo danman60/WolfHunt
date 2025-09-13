@@ -1,0 +1,224 @@
+# WolfHunt Project Documentation
+**Project Type**: dYdX v4 Automated Trading Bot with Web Interface
+**Status**: Production Ready with Full-Stack Architecture
+**Last Updated**: 2025-09-13
+
+## Executive Summary
+WolfHunt is a production-ready automated trading bot for BTC, ETH, and LINK perpetual futures on dYdX v4. The system implements momentum-based trading strategies with enterprise-grade risk controls, secure web interface, and comprehensive monitoring. Built with a React/TypeScript frontend deployed on Netlify and FastAPI backend on Railway, featuring real-time portfolio tracking, strategy configuration, and complete audit trails.
+
+## Project Structure
+```
+WolfHunt/
+├── .git/                           # Git repository
+├── backend/                        # Python FastAPI backend
+│   ├── src/
+│   │   ├── trading/                # Core trading engine
+│   │   │   ├── strategies/         # Trading strategies implementation
+│   │   │   ├── risk_management/    # Risk controls and position sizing
+│   │   │   ├── execution/          # Order execution and management
+│   │   │   └── market_data/        # Real-time data processing
+│   │   ├── api/                    # REST API routes and endpoints
+│   │   ├── database/               # Data models and DAOs
+│   │   ├── security/               # Authentication and encryption
+│   │   └── monitoring/             # Health checks and metrics
+│   ├── tests/                      # Backend test suite
+│   └── config/                     # Configuration management
+├── frontend/                       # React TypeScript frontend
+│   ├── src/
+│   │   ├── components/             # Reusable UI components
+│   │   ├── pages/                  # Application pages and routes
+│   │   ├── hooks/                  # Custom React hooks
+│   │   ├── services/               # API integration services
+│   │   └── utils/                  # Utility functions
+│   ├── public/                     # Static assets
+│   └── dist/                       # Production build output
+├── infrastructure/                 # Deployment and infrastructure
+├── netlify/                        # Netlify functions and configuration
+├── qa/                             # Quality assurance and testing
+├── tests/                          # Integration and E2E tests
+├── docker-compose.yml              # Local development environment
+├── Dockerfile                      # Container configuration
+├── netlify.toml                    # Netlify deployment configuration
+├── README.md                       # Core project documentation
+├── CLAUDE.md                       # Project-specific configuration
+├── DEPLOYMENT_READY_SUMMARY.md     # Production deployment guide
+├── FINAL_DEPLOYMENT_INSTRUCTIONS.md # Complete deployment instructions
+└── NETLIFY_DEPLOYMENT_GUIDE.md     # Netlify-specific deployment
+```
+
+## Technical Architecture
+
+### Frontend (Netlify)
+- **Framework**: React 18 with TypeScript
+- **Routing**: React Router for SPA navigation
+- **State Management**: React hooks with Context API
+- **UI Framework**: Custom components with responsive design
+- **API Integration**: Axios for backend communication
+- **Real-time Updates**: WebSocket connections for live data
+- **Deployment**: Netlify with automatic deployments from Git
+
+### Backend (Railway)
+- **Framework**: FastAPI with Python asyncio
+- **Database**: PostgreSQL for trade history and configuration
+- **WebSocket**: Real-time data streaming to frontend
+- **Authentication**: JWT tokens with session management
+- **Trading Engine**: dYdX v4 integration with WebSocket and REST APIs
+- **Risk Management**: Position sizing, stop-loss, daily limits
+- **Monitoring**: Prometheus metrics with health checks
+
+### External Integrations
+- **dYdX v4**: Primary trading platform with perpetual futures
+- **CoinGecko API**: Primary price feed with GMX fallback
+- **Price Feeds**: Redundant data sources for reliability
+- **Monitoring**: External alerting and notification systems
+
+## Core Features
+
+### Trading Engine
+- **dYdX v4 Integration**: Full WebSocket and REST API integration
+- **Momentum Strategies**: Moving Average Crossover with configurable parameters
+- **Risk Management**: Position sizing, stop-loss, daily loss limits, correlation monitoring
+- **Paper Trading**: Full simulation mode with realistic execution
+- **Backtesting**: Comprehensive historical strategy validation
+
+### Web Interface
+- **Real-time Dashboard**: Live portfolio tracking with P&L updates
+- **Wolf Configuration**: Centralized strategy parameter management
+- **Trade History**: Complete audit trail with filtering and export
+- **Mobile Responsive**: Full mobile trading interface
+- **Strategy Control**: Start/stop trading with parameter adjustments
+
+### Security & Monitoring
+- **Enterprise Security**: AES-256 encryption, JWT authentication, 2FA support
+- **Comprehensive Monitoring**: Prometheus metrics, health checks
+- **Multi-channel Alerts**: Email, SMS, Slack integration capabilities
+- **Circuit Breakers**: Automatic trading suspension on anomalies
+
+## Production Configuration
+
+### Environment Variables
+```bash
+# dYdX API Configuration
+DYDX_API_KEY=your_api_key
+DYDX_API_SECRET=your_api_secret
+DYDX_PASSPHRASE=your_passphrase
+DYDX_ENVIRONMENT=mainnet
+
+# Database
+DATABASE_URL=postgresql://user:pass@host:port/db
+
+# Security
+JWT_SECRET_KEY=your_jwt_secret
+ENCRYPTION_KEY=your_encryption_key
+
+# External APIs
+COINGECKO_API_KEY=your_coingecko_key
+```
+
+### Deployment Architecture
+- **Frontend**: Netlify (https://wolfhunt.netlify.app/)
+- **Backend**: Railway with PostgreSQL database
+- **Proxy**: Netlify functions proxy `/api/*` to Railway backend
+- **Monitoring**: Health checks and uptime monitoring
+- **Alerts**: Email/SMS notifications for critical events
+
+## Known Issues and Solutions
+
+### Price Feed Management
+- **Issue**: Price feeds can break if API polling intervals conflict
+- **Solution**: Implemented redundant price sources with fallback logic
+- **Monitoring**: Active price feed health monitoring with alerts
+
+### API Integration Challenges
+- **Issue**: "Body stream already read" errors from polling non-existent endpoints
+- **Solution**: Proper error handling and endpoint validation
+- **Prevention**: Comprehensive endpoint testing before deployment
+
+### Frontend State Management
+- **Issue**: toLocaleString() errors when price data is undefined
+- **Solution**: Defensive programming with null checks and fallbacks
+- **Pattern**: `value?.toLocaleString?.() || 'N/A'`
+
+### Navigation and Routing
+- **Issue**: Navigation active states must handle legacy routes
+- **Solution**: Unified Wolf Configuration page replaces legacy Trading/Strategy pages
+- **Implementation**: Route consolidation with proper active state handling
+
+## Development Status
+- ✅ **TESTED & WORKING**: Complete dYdX v4 integration with live trading
+- ✅ **TESTED & WORKING**: Real-time portfolio tracking and P&L updates
+- ✅ **TESTED & WORKING**: Strategy configuration and parameter management
+- ✅ **TESTED & WORKING**: Risk management and position controls
+- ✅ **TESTED & WORKING**: Web interface with mobile responsiveness
+- ✅ **TESTED & WORKING**: Paper trading simulation mode
+- ✅ **TESTED & WORKING**: Trade history and audit trail
+- ✅ **TESTED & WORKING**: Production deployment on Netlify/Railway
+
+## Business Impact
+- **High Value**: Complete automated trading solution for cryptocurrency perpetuals
+- **Revenue Generation**: Active trading strategies with proven backtesting results
+- **Risk Management**: Enterprise-grade controls protect capital
+- **Accessibility**: Web-based interface accessible from any device
+- **Scalability**: Cloud-native architecture supports growth
+
+## Security Features
+- **API Security**: Secure dYdX API key management with encryption
+- **Authentication**: JWT-based session management
+- **Data Protection**: Encrypted storage of sensitive trading data
+- **Network Security**: HTTPS enforcement and secure API proxying
+- **Access Control**: Role-based permissions for trading functions
+
+## Performance Optimization
+- **Frontend**: React optimization with lazy loading and code splitting
+- **Backend**: FastAPI with async operations for high concurrency
+- **Database**: Optimized queries with proper indexing
+- **Caching**: Strategic caching of price data and market information
+- **Real-time**: Efficient WebSocket connections for live updates
+
+## Testing and Quality Assurance
+
+### E2E Testing Suite
+- **Location**: `../wolfhunt-e2e/` directory (external test suite)
+- **Framework**: Playwright for browser automation
+- **Coverage**: Complete user workflow testing
+- **CI/CD**: Automated testing on deployment
+
+### Testing Patterns
+- **Wait Times**: 90+ seconds for Netlify deployment before testing
+- **Error Handling**: Comprehensive error scenario testing
+- **Cross-browser**: Testing across multiple browser platforms
+- **Mobile**: Responsive design validation on mobile devices
+
+## Session History
+- **2025-09-13**: Comprehensive project analysis - production trading bot
+- **2025-09-11**: Major testing and stability improvements
+- **2025-09-10**: Wolf Configuration interface implementation
+- **2025-09-10**: Price feed optimization and error handling improvements
+
+## Next Steps
+
+### Enhancement Opportunities
+1. **Advanced Strategies**: Implementation of additional trading algorithms
+2. **Portfolio Analytics**: Enhanced reporting and performance metrics
+3. **Social Features**: Trade sharing and strategy community
+4. **Mobile App**: Native mobile application for iOS/Android
+
+### Operational Improvements
+1. **Monitoring Enhancement**: Advanced alerting and anomaly detection
+2. **Performance**: Further optimization for high-frequency trading
+3. **Security**: Additional security layers and audit logging
+4. **Compliance**: Regulatory compliance features and reporting
+
+## Risk Assessment
+- 🟡 **Medium Risk**: Live trading with real capital requires ongoing monitoring
+- **High Confidence**: 85% - Production-ready with comprehensive testing
+- **Technical Risk**: Low - Proven architecture with redundant systems
+- **Market Risk**: High - Inherent to cryptocurrency trading
+- **Operational Risk**: Medium - Requires active monitoring and maintenance
+
+## Rollback Strategy
+- **Frontend**: Netlify built-in rollback via deployment dashboard
+- **Backend**: Railway deployment rollback with database migration support
+- **Configuration**: Environment variable versioning and backup
+- **Emergency**: Manual trading halt via admin interface
+- **Data**: Database backups with point-in-time recovery

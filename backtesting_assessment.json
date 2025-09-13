@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-09-13T14:36:43.291536",
+  "backend_components": {
+    "backtest_schemas": "Available",
+    "strategy_engine": "Available",
+    "market_data": "Available"
+  },
+  "paper_trading": {
+    "/api/v1/paper-trade/execute": "Implemented",
+    "/api/v1/paper-trade/portfolio": "Implemented",
+    "/api/v1/paper-trade/strategy-execute": "Implemented"
+  },
+  "mock_wallet": {
+    "balance_tracking": "No portfolio models found",
+    "position_management": "Position models exist",
+    "trade_history": "Trade models exist"
+  },
+  "wallet_features": {
+    "balance_tracking": false,
+    "position_management": true,
+    "pnl_calculation": false,
+    "trade_history": true
+  },
+  "backtesting_gaps": {
+    "backend/src/trading/backtesting/": "Missing",
+    "backend/src/trading/backtesting/engine.py": "Missing",
+    "backend/src/trading/backtesting/mock_wallet.py": "Missing",
+    "backend/src/trading/backtesting/historical_data.py": "Missing"
+  },
+  "required_components": {
+    "historical_data_source": false,
+    "backtesting_engine": false,
+    "mock_wallet_state": false,
+    "strategy_simulation": false,
+    "performance_metrics": false,
+    "time_series_processing": false
+  },
+  "summary": {
+    "total_checks": 13,
+    "passed_checks": 8,
+    "readiness_percent": 61.53846153846154
+  }
+}

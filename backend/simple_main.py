@@ -24,7 +24,21 @@ except ImportError:
     AUTOMATION_AVAILABLE = False
     print("Wolf Pack Intelligence not available - using simplified mode")
 
+# Import backtesting system
+try:
+    from src.api.backtesting_routes import router as backtesting_router
+    BACKTESTING_AVAILABLE = True
+    print("Backtesting system loaded successfully")
+except ImportError as e:
+    BACKTESTING_AVAILABLE = False
+    print(f"Backtesting system not available: {e}")
+
 app = FastAPI(title="GMX Trading Bot API with Wolf Pack Intelligence", version="2.0.0")
+
+# Register backtesting routes if available
+if BACKTESTING_AVAILABLE:
+    app.include_router(backtesting_router)
+    print("Backtesting routes registered at /api/backtesting/*")
 
 # Enable CORS for frontend - Allow all origins in production for Wolf Pack Intelligence
 # This is safe since this is a trading bot backend with proper authentication
