@@ -1,14 +1,15 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-import { 
-  BellIcon, 
-  UserIcon, 
-  Cog6ToothIcon, 
+import {
+  BellIcon,
+  UserIcon,
+  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   ChevronDownIcon,
-  ExclamationCircleIcon 
+  ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '../../utils/cn';
+import { ConnectionStatus } from '../ConnectionStatus';
 
 interface HeaderProps {
   user?: {
@@ -32,11 +33,11 @@ export function Header({
   return (
     <header className="bg-gray-900 border-b border-gray-700 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between h-16">
-        {/* Left side - Trading mode indicator */}
-        <div className="flex items-center">
+        {/* Left side - Trading mode indicator and connection status */}
+        <div className="flex items-center space-x-4">
           <div className={cn(
             'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
-            tradingMode === 'live' 
+            tradingMode === 'live'
               ? 'bg-red-100 text-red-800 border border-red-200'
               : 'bg-blue-100 text-blue-800 border border-blue-200'
           )}>
@@ -49,6 +50,7 @@ export function Header({
               <ExclamationCircleIcon className="w-4 h-4 ml-1" />
             )}
           </div>
+          <ConnectionStatus />
         </div>
 
         {/* Right side - Notifications and user menu */}
