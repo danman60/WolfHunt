@@ -59,11 +59,11 @@ class TradingConfig(BaseSettings):
     # =============================================================================
     
     database_url: str = Field(
-        "postgresql://trading_user:secure_password@localhost:5432/trading_bot",
+        "postgresql://trading_user:changeme@localhost:5432/trading_bot",
         description="PostgreSQL database URL"
     )
     database_test_url: str = Field(
-        "postgresql://trading_user:secure_password@localhost:5432/trading_bot_test",
+        "postgresql://trading_user:changeme@localhost:5432/trading_bot_test",
         description="Test database URL"
     )
     

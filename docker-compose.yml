@@ -5,7 +5,7 @@ services:
     build: .
     container_name: dydx-trading-bot
     environment:
-      - DATABASE_URL=postgresql://trading_user:secure_password@db:5432/trading_bot
+      - DATABASE_URL=postgresql://trading_user:@db:5432/trading_bot
       - REDIS_URL=redis://redis:6379/0
       - DYDX_API_KEY=${DYDX_API_KEY}
       - DYDX_SECRET_KEY=${DYDX_SECRET_KEY}
@@ -36,7 +36,7 @@ services:
     environment:
       POSTGRES_DB: trading_bot
       POSTGRES_USER: trading_user
-      POSTGRES_PASSWORD: secure_password
+      POSTGRES_PASSWORD: changeme
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
